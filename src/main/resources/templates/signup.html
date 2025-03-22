@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - MusicExchange</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: lightblue;
+        }
+        .container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: violet;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9; /* Grigio chiaro per i campi vuoti */
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        input.valid {
+            border-color: green; /* Bordo verde per i campi validi */
+            background-color: #e6ffe6; /* Sfondo verde chiaro per i campi validi */
+        }
+        input.invalid {
+            border-color: red; /* Bordo rosso per i campi non validi */
+            background-color: #ffe6e6; /* Sfondo rosso chiaro per i campi non validi */
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .message {
+            margin-top: 15px;
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            margin-top: 15px;
+            color: red;
+            font-weight: bold;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+	<p><a th:href="@{/home}">MusicExchange</a></p>
+    <div class="container">
+        <!-- Header -->
+        <h1>Sign Up</h1>
+        <p>Create your MusicExchange account to get started.</p>
+
+        <!-- Display success or error messages -->
+        <div th:if="${message}" class="message" th:text="${message}"></div>
+        <div th:if="${error}" class="error" th:text="${error}"></div>
+
+        <!-- Signup Form -->
+        <form th:action="@{/signup}" method="post">
+            <!-- Username Field -->
+            <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
+                <div id="username-error" class="error-message"></div>
+            </div>
+
+            <!-- Email Field -->
+            <div>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required placeholder="Enter your email">
+                <div id="email-error" class="error-message"></div>
+            </div>
+
+            <!-- Password Field -->
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+                <div id="password-error" class="error-message"></div>
+            </div>
+
+            <!-- Submit Button -->
+            <div>
+                <button type="submit">Sign Up</button>
+            </div>
+        </form>
+
+        <!-- Link to Login Page -->
+        <div style="margin-top: 15px;">
+            <p>Already have an account? <a th:href="@{/login}">Log In</a></p>
+        </div>
+    </div>
+
+    <!-- JavaScript per la validazione -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            const usernameInput = document.getElementById('username');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const usernameError = document.getElementById('username-error');
+            const emailError = document.getElementById('email-error');
+            const passwordError = document.getElementById('password-error');
+
+            // Regex per la validazione
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+            // Funzione per validare un campo
+            function validateField(input, errorElement, regex, errorMessage) {
+                if (input.value.trim() === '') {
+                    errorElement.textContent = 'This field is required.';
+                    input.classList.remove('valid', 'invalid');
+                } else if (regex && !regex.test(input.value)) {
+                    errorElement.textContent = errorMessage;
+                    input.classList.remove('valid');
+                    input.classList.add('invalid');
+                } else {
+                    errorElement.textContent = '';
+                    input.classList.remove('invalid');
+                    input.classList.add('valid');
+                }
+            }
+
+            // Validazione in tempo reale
+            usernameInput.addEventListener('input', function () {
+                validateField(usernameInput, usernameError, null, '');
+            });
+
+            emailInput.addEventListener('input', function () {
+                validateField(emailInput, emailError, emailRegex, 'Please enter a valid email address.');
+            });
+
+            passwordInput.addEventListener('input', function () {
+                validateField(passwordInput, passwordError, passwordRegex, 'Password must be at least 8 characters long, contain at least one uppercase letter, one number, and one special character.');
+            });
+
+            // Validazione al submit del form
+            form.addEventListener('submit', function (event) {
+                let isValid = true;
+
+                validateField(usernameInput, usernameError, null, '');
+                validateField(emailInput, emailError, emailRegex, 'Please enter a valid email address.');
+                validateField(passwordInput, passwordError, passwordRegex, 'Password must be at least 8 characters long, contain at least one uppercase letter, one number, and one special character.');
+
+                if (usernameInput.classList.contains('invalid') ||
+                    emailInput.classList.contains('invalid') ||
+                    passwordInput.classList.contains('invalid')) {
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    event.preventDefault(); // Impedisce l'invio del form se ci sono errori
+                }
+            });
+        });
+    </script>
+</body>
+</html>

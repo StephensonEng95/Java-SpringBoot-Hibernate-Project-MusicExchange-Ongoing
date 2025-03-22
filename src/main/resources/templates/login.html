@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MusicExchange</title>
+    <style>
+        /* Body styling */
+        body {
+            background-color: #add8e6; /* Light blue */
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Form container */
+        .login-form {
+            background-color: #8a2be2; /* Violet */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 300px;
+            text-align: center;
+        }
+
+        /* Form header */
+        .login-form h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        /* Input fields */
+        .login-form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        /* Submit button */
+        .login-form button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4caf50; /* Green */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .login-form button:hover {
+            background-color: #45a049; /* Darker green */
+        }
+
+        /* Link styling */
+        .login-form a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .login-form a:hover {
+            text-decoration: underline;
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: #ff4444; /* Red */
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Form -->
+    <div class="login-form">
+        <h2>Login</h2>
+
+        <!-- Display error message if any -->
+        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+
+        <!-- Login Form -->
+        <form th:action="@{/login}" method="post">
+            <!-- Username Field -->
+            <input type="text" id="username" name="username" placeholder="Username" required>
+
+            <!-- Password Field -->
+            <input type="password" id="password" name="password" placeholder="Password" required>
+
+            <!-- Submit Button -->
+            <button type="submit">Login</button>
+        </form>
+
+        <!-- Link to Signup Page -->
+        <a th:href="@{/signup}">Don't have an account? Sign Up</a>
+    </div>
+</body>
+</html>
