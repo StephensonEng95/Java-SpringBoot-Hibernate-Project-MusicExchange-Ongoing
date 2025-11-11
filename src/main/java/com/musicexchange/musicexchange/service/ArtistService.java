@@ -12,33 +12,36 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class ArtistService {
-	
-	private final ArtistRepository userrepo;
-	
-	Artist art=new Artist();
 	@Autowired
+	private ArtistRepository artistRepo;
+	
+	/*@Autowired
 	public ArtistService(ArtistRepository userrepo) {
         this.userrepo = userrepo;
-    }
+    }*/
 	@Transactional
 	public Artist createArtist(String username,String email,String password){
 		Artist at=new Artist();
 		at.setUsername(username);
 		at.setPassword(password);
 		at.setEmail(email);
-		return userrepo.save(at);
+		return artistRepo.save(at);
 	}
 	
 	@Transactional
-	void updateArtistEmail(Long id,String email) {
-		art.setEmail(email);
-		userrepo.save(art);
+	public void updateArtistEmail(Long id,String email) {
+		artistRepo.updateArtistEmail(id, email);
 		
 	}
 	
-	void updatePassword(Long id, String password) {
-		art.setPassword(password);
-		userrepo.save(art);
+	@Transactional
+    public void updateArtistPassword(Long id, String password) {
+		artistRepo.updateArtistPassword(id, password);
+	}
+	
+	@Transactional
+	public void deleteArtist(Long id) {
+		artistRepo.deleteArtist(id);
 	}
 	
 	

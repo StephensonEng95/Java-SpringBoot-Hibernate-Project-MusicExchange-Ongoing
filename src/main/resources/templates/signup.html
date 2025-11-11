@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - MusicExchange</title>
+    <title>Signup - MusicExchange</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -78,7 +78,9 @@
     </style>
 </head>
 <body>
+	
 	<p><a th:href="@{/home}">MusicExchange</a></p>
+	<h2>Sign Up as <span th:text="${role}"></span></h2>
     <div class="container">
         <!-- Header -->
         <h1>Sign Up</h1>
@@ -90,14 +92,20 @@
 
         <!-- Signup Form -->
         <form th:action="@{/signup}" method="post">
+			<input type="hidden" th:value="${role}" name="role">
             <!-- Username Field -->
             <div>
+				
                 <label for="username">Username:</label>
                 <input type="text" id="username" name="username" required placeholder="Enter your username">
                 <div id="username-error" class="error-message"></div>
             </div>
 
             <!-- Email Field -->
+           <!-- <label for="exampleInputEmail1" class="form-label">Role</label> <input type="text"
+					class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
+					placeholder="Please specify Artist or fun?" name="role">-->
+			
             <div>
                 <label for="email">Email:</label>
                 <input type="email" id="email" name="email" required placeholder="Enter your email">
@@ -123,7 +131,7 @@
         </div>
     </div>
 
-    <!-- JavaScript per la validazione -->
+    <!-- JavaScript for validation -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.querySelector('form');

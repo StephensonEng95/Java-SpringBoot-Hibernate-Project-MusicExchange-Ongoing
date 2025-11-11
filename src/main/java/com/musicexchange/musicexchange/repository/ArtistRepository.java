@@ -16,12 +16,13 @@ import jakarta.transaction.Transactional;
 @Repository
 public interface ArtistRepository extends CrudRepository<Artist,Long>{
 	
-	//void createArtist(String username,String password,String email);
+	
 	
 	@Modifying
 	@Transactional
 	@Query("update Artist a set a.email= :email where a.id= :id")
 	void updateArtistEmail(@Param("id")Long id,@Param("email")String email);
+	
 	
 	@Modifying
 	@Transactional
@@ -32,11 +33,5 @@ public interface ArtistRepository extends CrudRepository<Artist,Long>{
 	@Transactional
 	@Query("delete from Artist a where a.id= :id")
 	void deleteArtist(@Param("id")Long id);
-	
-	
-	
-	
-	
-	
 
 }
