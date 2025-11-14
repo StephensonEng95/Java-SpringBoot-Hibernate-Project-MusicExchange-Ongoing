@@ -62,8 +62,9 @@ I'm still working on:
 ## My Development Approach
 
 I've been practicing good Git workflow by using feature branches:
-- Created `repositoriesUpdates` branch for all my repository layer improvements
-- Created `servicesUpdates` branch for service layer enhancements  
+- Created 'repositoriesUpdates' branch for all my repository layer improvements
+- Created 'servicesUpdates' branch for service layer enhancements
+- Created 'updatedControllers' branch for apis management
 - This lets me work on features without breaking the main codebase
 - I'm learning how to manage multiple branches and merge changes safely
 
