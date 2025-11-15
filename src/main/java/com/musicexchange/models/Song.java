@@ -21,7 +21,7 @@ import lombok.ToString;
 /**
  * Song class containing song properties
  * and ManyToOne relationship to indicate multiple songs
- * can belong to one song
+ * can belong to one artist
  */ 
 @Entity
 @Getter
