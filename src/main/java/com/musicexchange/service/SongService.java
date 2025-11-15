@@ -29,9 +29,9 @@ public class SongService {
 		this.artistRepository = artistRepository;
 	}
 	
-	public Song addSong(String songTitle, String genre, int duration, LocalDate release_date, String artistUsername) 
+	public Song addSong(String songTitle, String genre, int duration, LocalDate release_date, String username) 
 	{   
-	    log.info("Adding song for artist: {}", artistUsername);
+	    log.info("Adding song for artist: {}", username);
 	    
 	    if(songRepository.existsBySongTitle(songTitle)) {
 	    	log.warn("Song already exists" + songTitle);
@@ -39,7 +39,7 @@ public class SongService {
 	    }
 	    
 	    Artist artist = artistRepository.findByUsername(artistUsername)
-	            .orElseThrow(() -> new RuntimeException("Artist not found with username: " + artistUsername));
+	            .orElseThrow(() -> new RuntimeException("Artist not found with username: " + username));
 	    
 	    Song song = new Song();
 	    song.setSongTitle(songTitle);  
@@ -48,7 +48,7 @@ public class SongService {
 	    song.setReleaseDate(release_date);
 	    song.setArtist(artist);
 	    artist.addSong(song);
-	    log.debug("Song added successfully for artist: {}", artistUsername);
+	    log.debug("Song added successfully for artist: {}", username);
 	    return songRepository.save(song); 
 	}
 	
