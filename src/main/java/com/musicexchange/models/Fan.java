@@ -21,7 +21,7 @@ import lombok.ToString;
 /**
  * Fan class containing song properties
  * and ManyToOne relationship to indicate multiple fans
- * can belong to one song
+ * can belong to one artist
  */
 
 @Entity
