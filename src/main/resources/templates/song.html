@@ -132,14 +132,14 @@
 
             <!-- Artist Username (hidden if user is logged in as artist) -->
             <div class="form-group" th:if="${session.userType != 'ARTIST'}">
-                <label for="artistUsername">Artist Username:</label>
-                <input type="text" id="artistUsername" name="artistUsername" required 
-                       placeholder="Enter artist username">
+                <label for="username">Artist Username:</label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="Enter your Artist username">
             </div>
             
             <!-- If user is logged in as artist, use their username automatically -->
             <input th:if="${session.userType == 'ARTIST'}" 
-                   type="hidden" name="artistUsername" th:value="${session.user.username}">
+                   type="hidden" name="username" th:value="${session.user.username}">
 
             <!-- Submit Button -->
             <button type="submit">Add Song</button>
