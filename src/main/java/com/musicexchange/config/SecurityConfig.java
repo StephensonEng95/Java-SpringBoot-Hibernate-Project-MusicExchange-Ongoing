@@ -8,6 +8,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Configuration class for password encoding and endpoints visibility
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -24,10 +27,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/user/login")           // Your login page
-                        .loginProcessingUrl("/user/login")  // Process login form submissions
-                        .defaultSuccessUrl("/user/home")    // Where to go after successful login
-                        .failureUrl("/user/login?error")    // Where to go if login fails
+                        .loginPage("/user/login")
+                        .loginProcessingUrl("/user/login")
+                        .defaultSuccessUrl("/user/home")
+                        .failureUrl("/user/login?error")
                         .permitAll()
                 )
                 .logout(logout -> logout
