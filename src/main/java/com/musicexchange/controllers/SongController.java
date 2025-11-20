@@ -41,10 +41,11 @@ public class SongController {
                             @RequestParam String genre,
                             @RequestParam int duration,
                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate release_date,
-                            @RequestParam String userame,
+                            @RequestParam String username,
                             Model model) {
         try {
-            songService.addSong(songTitle, genre,duration,release_date, username);
+
+            songService.createSong(songTitle, genre,duration,release_date, username);
             model.addAttribute("message", "Song '" + songTitle + "' added successfully!");
             return "redirect:/song/all";
             

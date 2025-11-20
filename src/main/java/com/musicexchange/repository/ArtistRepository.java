@@ -2,6 +2,7 @@ package com.musicexchange.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 
 import org.springframework.data.jpa.repository.Query;
@@ -20,11 +21,10 @@ import jakarta.transaction.Transactional;
  */
 
 @Repository
-public interface ArtistRepository extends CrudRepository<Artist,Long>{
+public interface ArtistRepository extends JpaRepository<Artist,Long> {
 	
 	
-	public Artist createArtist(String username,String email, String password );
-	
+
 	Optional<Artist> findByUsername(String username); 
 	boolean existsByUsername(String username); 
 	boolean existsByEmail(String email);

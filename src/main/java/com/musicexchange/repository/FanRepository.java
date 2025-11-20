@@ -2,6 +2,7 @@ package com.musicexchange.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -16,10 +17,9 @@ import jakarta.transaction.Transactional;
  * Extends CrudRepository for basic CRUD operations
  */
 @Repository
-public interface FanRepository extends CrudRepository<Fan,Long> {
+public interface FanRepository extends JpaRepository<Fan,Long> {
 	
-	public Fan createFan(String username, String email, String password);
-	
+
 	Optional<Fan> findByUsername(String username);
 	boolean existsByUsername(String username);
 	boolean existsByEmail(String password);
@@ -31,7 +31,7 @@ public interface FanRepository extends CrudRepository<Fan,Long> {
 	
 	@Transactional
 	@Modifying
-	@Query("udate Fan f set f.password= :email where f.id= :id")
+	@Query("update Fan f set f.password= :email where f.id= :id")
 	void updateFanPassword(@Param("id")Long id, @Param("password")String password);
 	
 	@Transactional

@@ -29,7 +29,7 @@ public class SongService {
 		this.artistRepository = artistRepository;
 	}
 	
-	public Song addSong(String songTitle, String genre, int duration, LocalDate release_date, String username) 
+	public Song createSong(String songTitle, String genre, int duration, LocalDate release_date, String username)
 	{   
 	    log.info("Adding song for artist: {}", username);
 	    
@@ -38,7 +38,7 @@ public class SongService {
 	    	throw new RuntimeException("Song already created" + songTitle);
 	    }
 	    
-	    Artist artist = artistRepository.findByUsername(artistUsername)
+	    Artist artist = artistRepository.findByUsername(username)
 	            .orElseThrow(() -> new RuntimeException("Artist not found with username: " + username));
 	    
 	    Song song = new Song();
@@ -60,10 +60,10 @@ public class SongService {
 		Artist artist = new Artist();
 		return artist.getSongs();
 	}
-	@Transactional
+
 	public void deleteSong(String songTitle) 
 	{
-		songRepository.deleteSongByTitle(songTitle); 
+		songRepository.deleteBySongTitle(songTitle);
 	}  
 	
 

@@ -23,7 +23,7 @@ public class ArtistService {
 	
 	private ArtistRepository artistRepo; 
 	private PasswordEncoder passwordEncoder;
-	
+
 	public ArtistService(ArtistRepository artistRepo, PasswordEncoder passwordEncoder)
 	{
         this.artistRepo = artistRepo;
@@ -52,7 +52,7 @@ public class ArtistService {
 		Artist artist=new Artist();
 		artist.setUsername(username); 
 		artist.setEmail(email); 
-		artist.setPassword(passwordEncoder.encode(rawPassword)); 
+		artist.setPassword(passwordEncoder.encode(rawPassword));
 
 		Artist savedArtist = artistRepo.save(artist);
 		log.debug("Artist created succesfully with id: {}", savedArtist.getId());

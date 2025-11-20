@@ -2,14 +2,8 @@ package com.musicexchange.controllers;
 
 import java.util.Optional;
 
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import com.musicexchange.models.Artist;
 import com.musicexchange.models.Fan;
 import com.musicexchange.models.UserRole;
@@ -21,9 +15,8 @@ import jakarta.servlet.http.HttpSession;
 /**
  * User controller handling artist and fan authentication
  */
-
+@RestController
 @RequestMapping("/user")
-@Controller
 public class UserController {
 	private final ArtistService artistService;
 	private final FanService fanService; 
@@ -38,7 +31,7 @@ public class UserController {
 		model.addAttribute("message", "welcome to MusicExchange");
 		return("home");
 	}
-	
+
 	@PostMapping("/signup")
 	public String processSignup(@RequestParam String username, @RequestParam String email,
 			                   @RequestParam String password, @RequestParam UserRole role, Model model) 
@@ -85,9 +78,9 @@ public class UserController {
 			return "signup";
 		}
 	}
-
+    @RequestMapping
 	@GetMapping("/signup")
-	public String signUpPage(@RequestParam(required = false) UserRole role, Model model) {
+	public String signUpPage() {
 		return "signup";
 	}
 
@@ -131,15 +124,17 @@ public class UserController {
 	}
 
 	@PutMapping("/updateartistemail")
-	public String updateArtistEmail(Long id, String email) {
+	public String updateArtistEmail(Long id, String email, Model model) {
 		artistService.updateArtistEmail(id, email);
-		return "Artist email updated successfully";
-	}
+		model.addAttribute("Artist email updated successfully '" + email);
+        return "redirect:/artist/dashboard";
+    }
 
 	@DeleteMapping("/updateartistpassword")
-	public String updateArtistPassword(Long id, String password) {
+	public String updateArtistPassword(Long id, String password, Model model) {
 		artistService.updateArtistPassword(id, password);
-		return "Artist email updated successfully";
+		model.addAttribute( "Artist email updated successfully '" + password);
+        return "redirect:/artist/dashboard";
 
 	}
 }

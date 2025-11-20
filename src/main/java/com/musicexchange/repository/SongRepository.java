@@ -3,6 +3,7 @@ package com.musicexchange.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -17,15 +18,15 @@ import jakarta.transaction.Transactional;
  * Extends CrudRepository for basic CRUD operations
  */
 @Repository
-public interface SongRepository extends CrudRepository<Song,Long>{
+public interface SongRepository extends JpaRepository<Song,Long> {
     	
 	boolean existsBySongTitle(String songTitle);
-	Optional<Song> findSongByTitle(String songTitle);
+	Optional<Song> findBySongTitle(String songTitle); 
 
 	List<Song> findByArtistId(Long artistId);
 	
 	@Transactional
 	@Modifying
-	@Query("delete from Songs s where s.songTitle =:songTitle")
-	void deleteSongByTitle(@Param("songTitle")String songTitle);
+	@Query("delete from Song s where s.songTitle =:songTitle")
+	void deleteBySongTitle(@Param("songTitle")String songTitle);
 }
