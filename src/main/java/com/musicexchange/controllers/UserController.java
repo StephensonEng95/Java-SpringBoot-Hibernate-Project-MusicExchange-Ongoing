@@ -2,6 +2,7 @@ package com.musicexchange.controllers;
 
 import java.util.Optional;
 
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import com.musicexchange.models.Artist;
@@ -15,7 +16,7 @@ import jakarta.servlet.http.HttpSession;
 /**
  * User controller handling artist and fan authentication
  */
-@RestController
+@Controller
 @RequestMapping("/user")
 public class UserController {
 	private final ArtistService artistService;
@@ -78,7 +79,7 @@ public class UserController {
 			return "signup";
 		}
 	}
-    @RequestMapping
+    
 	@GetMapping("/signup")
 	public String signUpPage() {
 		return "signup";
