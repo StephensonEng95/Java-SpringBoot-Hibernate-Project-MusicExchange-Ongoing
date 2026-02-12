@@ -1,98 +1,93 @@
 package com.musicexchange.service;
 
-import java.util.Optional;
-
+import com.musicexchange.models.Fan;
+import com.musicexchange.repository.FanRepository;
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.musicexchange.models.Fan;
-import com.musicexchange.repository.FanRepository;
-
-import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
-
-/**
- * Fan service layer handling business logic for 
- * fan entities
- */
+import java.util.Optional;
 
 @Service
 @Transactional
 @Slf4j
 public class FanService {
-	private FanRepository fanRepo;
-	private PasswordEncoder passwordEncoder;
-	
-	public FanService(FanRepository fanrepo, PasswordEncoder passwordEncoder) {
-		
-		this.fanRepo = fanrepo;
-		this.passwordEncoder = passwordEncoder;
-	}
-	
-	/**
-	 * creates new fan with provided parameters at signup
-	 * @param username fan's username
-	 * @param email fan's email
-	 * @param rawPassword plain text password to be encoded
-	 * @return savedFan fan's entity 
-	 */
-	public Fan createFan(String username,String email,String rawPassword)
-	{
-		log.info("Creating fan with username: {}", username);
-		if(fanRepo.existsByUsername(username)) {
-			log.warn("duplicate username creation attempt: {}" + username);
-			throw new RuntimeException("username '" + username + "' is already taken" );
-		}
-		
-		if(fanRepo.existsByEmail(email)) {
-			log.warn("duplicate email creation attempt: {}" + email);
-			throw new RuntimeException("email'" + email + "'is already taken");
-		}
-		
-		Fan fan = new Fan();
-		fan.setUsername(username); 
-		fan.setEmail(email); 
-		fan.setPassword(passwordEncoder.encode(rawPassword)); 
 
-		Fan savedFan = fanRepo.save(fan);
-		log.debug("Fan created succesfully with id: {}", savedFan.getId());
-		return savedFan;
-	} 
-	
-	public Optional<Fan> authenticateFan(String username, String rawPassword)
-	 {
-		 log.info("Authenticating artist with username: {} and password: {}" + username + rawPassword);
-		 Optional<Fan> fan = fanRepo.findByUsername(username);
-	     if (fan.isPresent() && passwordEncoder.matches(rawPassword, fan.get().getPassword())) {
-	    	 log.debug("Authentication successful");
-	    	 return fan;
-	        }
-	     log.error("Authentication failed");
-	        return Optional.empty();
-	    }
-	public void updateFanEmail(Long id,String email)
-	{
-		log.info("updating artist email with id: {}" + email + id);
-		Optional<Fan> artistOpt = fanRepo.findById(id);
-		if(artistOpt.isPresent()) {
-			fanRepo.updateFanEmail(id, email);
-			log.debug("Fan with id: {}" + id + "updated succesfully");
-		}
-		else {
-			log.warn("Attempted to update non existent fan with id: {}" + id);
-			throw new RuntimeException("Can't find Fan with id" + id);
-		}		
-	} 
-	 
-    public void updateFanPassword(Long id, String password) 
-    {
-		fanRepo.updateFanPassword(id, password);
-	}
-	
-	
-	public void deleteFan(Long id) 
-	{
-		fanRepo.deleteFan(id);
-	}
-	
+    private final FanRepository fanRepo;
+    private final PasswordEncoder passwordEncoder;
+
+    public FanService(FanRepository fanRepo, PasswordEncoder passwordEncoder) {
+        this.fanRepo = fanRepo;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    // Main signup logic for fans
+    public void createFan(String username, String email, String rawPassword) {
+        log.info("Creating fan: {}", username);
+
+        if (fanRepo.existsByUsername(username)) {
+            throw new RuntimeException("Username '" + username + "' is already taken");
+        }
+
+        if (fanRepo.existsByEmail(email)) {
+            throw new RuntimeException("Email '" + email + "' is already taken");
+        }
+
+        Fan fan = new Fan();
+        fan.setUsername(username);
+        fan.setEmail(email);
+        fan.setPassword(passwordEncoder.encode(rawPassword));
+
+        fanRepo.save(fan);
+        log.debug("Fan saved successfully");
+    }
+
+    // Checks credentials for login
+    public Optional<Fan> authenticateFan(String username, String rawPassword) {
+        log.info("Auth attempt for fan: {}", username);
+        Optional<Fan> fan = fanRepo.findByUsername(username);
+
+        if (fan.isPresent() && passwordEncoder.matches(rawPassword, fan.get().getPassword())) {
+            log.debug("Login successful");
+            return fan;
+        }
+
+        log.error("Login failed for fan: {}", username);
+        return Optional.empty();
+    }
+
+    // Updates existing email after checking if user exists
+    public void updateFanEmail(Long id, String email) {
+        log.info("Updating email for fan id: {}", id);
+
+        Fan fan = fanRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Can't find Fan with id: " + id));
+
+        fan.setEmail(email);
+        fanRepo.save(fan);
+        log.debug("Email updated successfully");
+    }
+
+    // Encodes new password before saving
+    public void updateFanPassword(Long id, String password) {
+        log.info("Updating password for fan id: {}", id);
+
+        Fan fan = fanRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Can't find Fan with id: " + id));
+
+        fan.setPassword(passwordEncoder.encode(password));
+        fanRepo.save(fan);
+    }
+
+    // Removes fan from system
+    public void deleteFan(Long id) {
+        log.info("Deleting fan id: {}", id);
+
+        if (!fanRepo.existsById(id)) {
+            throw new RuntimeException("Delete failed: Fan not found");
+        }
+
+        fanRepo.deleteById(id);
+    }
 }

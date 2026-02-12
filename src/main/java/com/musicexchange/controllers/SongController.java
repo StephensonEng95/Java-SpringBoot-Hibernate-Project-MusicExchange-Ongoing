@@ -1,69 +1,61 @@
 package com.musicexchange.controllers;
 
-import java.time.LocalDate;
-
+import com.musicexchange.service.SongService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
-import com.musicexchange.models.Song;
-import com.musicexchange.service.SongService;
-
-/**
- * Song Controller handling song CRUD operations
- */
+import java.time.LocalDate;
 
 @Controller
 @RequestMapping("/song")
-public class SongController { 
-    
+public class SongController {
+
     private final SongService songService;
-    
-    public SongController(SongService songService) {  
-        this.songService = songService; 
+
+    public SongController(SongService songService) {
+        this.songService = songService;
     }
 
-    // Show form to add new song
+    // Directs to the song upload page
     @GetMapping("/add")
-    public String showAddSongForm(Model model) {
-        model.addAttribute("song", new Song());
-        return "song"; // Matches song.html
+    public String showAddSongForm() {
+        return "add-song";
     }
 
-    // Process song creation
+    // Handles saving the song data from the form
     @PostMapping("/add")
     public String createSong(@RequestParam String songTitle,
-                            @RequestParam String genre,
-                            @RequestParam int duration,
-                            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate release_date,
-                            @RequestParam String username,
-                            Model model) {
+                             @RequestParam String genre,
+                             @RequestParam int duration,
+                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate releaseDate,
+                             @RequestParam String username,
+                             Model model) {
         try {
+            // Service handles the logic and linking to the artist
+            songService.createSong(songTitle, genre, duration, releaseDate, username);
 
-            songService.createSong(songTitle, genre,duration,release_date, username);
-            model.addAttribute("message", "Song '" + songTitle + "' added successfully!");
+            // Redirecting to the list view after success
             return "redirect:/song/all";
-            
+
         } catch (Exception e) {
-            model.addAttribute("error", "Error adding song: " + e.getMessage());
-            return "song";
-        }   
+            model.addAttribute("error", "Failed to add song: " + e.getMessage());
+            return "add-song";
+        }
     }
 
+    // List all songs in the app
     @GetMapping("/all")
     public String getAllSongs(Model model) {
         model.addAttribute("songs", songService.getAllSongs());
-        return "song"; 
+        return "songs-list";
     }
 
-    @GetMapping("/artist/{artistid}")
-    public String getSongsByArtist(@PathVariable Long artistid, Model model) {
-        model.addAttribute("songs", songService.getSongsByArtistId(artistid));
-        return "song"; 
+    // View songs for one specific artist
+    @GetMapping("/artist/{artistId}")
+    public String getSongsByArtist(@PathVariable Long artistId, Model model) {
+        model.addAttribute("songs", songService.getSongsByArtistId(artistId));
+        return "songs-list";
     }
 }
