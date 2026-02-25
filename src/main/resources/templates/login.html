@@ -4,109 +4,173 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - MusicExchange</title>
+    <!-- Standard fonts and colors to match your Signup page -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Body styling */
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --white: #ffffff;
+            --error-red: #dc3545;
+        }
+
         body {
-            background-color: #add8e6; /* Light blue */
-            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
             margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
         }
 
-        /* Form container */
-        .login-form {
-            background-color: #8a2be2; /* Violet */
+        .login-card {
+            background-color: var(--white);
             padding: 40px;
-            padding-top: 50px;
-            border-radius: 70px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 200px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 350px;
             text-align: center;
         }
 
-        /* Form header */
-        .login-form h2 {
-            color: white;
+        .brand-link {
+            text-align: center;
             margin-bottom: 20px;
-            text-align:center;
-        }
-
-        /* Input fields */
-        .login-form input {
-            width: 100%;
-            padding: 10px;
-            padding-left: 10px;
-            margin-bottom: 10px;
-            border: none;
-            border-radius: 10px;
-            font-size: 20px;
-            align-items: center;
-            padding-top: 5px;
-            padding-right: 10px;
-        }
-
-        /* Submit button */
-        .login-form button {
-            width: 100%;
-            padding: 10px;
-            background-color: #4caf50; /* Green */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            box-align: center;
-        }
-
-        .login-form button:hover {
-            background-color: blue; /* blue */
-        }
-
-        /* Link styling */
-        .login-form a {
-            color: white;
-            text-decoration: none;
             display: block;
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .login-card h2 {
+            color: var(--text-color);
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+
+        .login-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        .login-card input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
             margin-top: 10px;
         }
 
-        .login-form a:hover {
-            text-decoration: underline;
+        .login-card button:hover {
+            background-color: var(--primary-hover);
         }
 
-        /* Error message styling */
+        .signup-link {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .signup-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Error message styles for when login fails */
         .error-message {
-            color: #ff4444; /* Red */
-            margin-bottom: 15px;
+            background-color: #f8d7da;
+            color: var(--error-red);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Style for the logout notification */
+        .logout-message {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            border: 1px solid #bee5eb;
         }
     </style>
 </head>
 <body>
-    <!-- Login Form -->
-    <div class="login-form">
-        <h2>Login</h2>
 
-        <!-- Display error message if any -->
-        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+<div class="login-card">
+    <a th:href="@{/}" class="brand-link">MusicExchange</a>
 
-        <!-- Login Form -->
-        <form th:action="@{/login}" method="post">
-            <!-- Username Field -->
-            <input type="text" id="username" name="username" placeholder="Username" required>
+    <h2>Welcome Back</h2>
+    <p>Sign in to continue to your dashboard</p>
 
-            <!-- Password Field -->
-            <input type="password" id="password" name="password" placeholder="Password" required>
-
-            <!-- Submit Button -->
-            <button type="submit">Login</button>
-        </form>
-
-        <!-- Link to Signup Page -->
-        <a th:href="@{/role}">Don't have an account? Sign Up</a>
+    <!-- This checks if 'error' was added to the Model in our UserController -->
+    <div th:if="${error}" class="error-message" th:text="${error}">
+        Invalid username or password.
     </div>
-</body> 
+
+    <!-- This checks the URL for ?logout=true (sent by our logout method) -->
+    <div th:if="${param.logout}" class="logout-message">
+        You have been logged out.
+    </div>
+
+    <!-- The form sends data to the /login POST method in our controller -->
+    <form th:action="@{/login}" method="post">
+        <div class="form-group">
+            <!-- The 'name' attribute must match the @RequestParam in the Java code -->
+            <input type="text" id="username" name="username" placeholder="Username" required>
+        </div>
+
+        <div class="form-group">
+            <input type="password" id="password" name="password" placeholder="Password" required>
+        </div>
+
+        <button type="submit">Log In</button>
+    </form>
+
+    <div class="signup-link">
+        Don't have an account? <a th:href="@{/signup}">Sign Up</a>
+    </div>
+</div>
+
+</body>
 </html>

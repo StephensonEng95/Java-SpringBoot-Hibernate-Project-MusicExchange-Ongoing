@@ -1,26 +1,22 @@
 package com.musicexchange.controllers;
 
 import com.musicexchange.models.Artist;
-import com.musicexchange.models.Fan;
 import com.musicexchange.models.UserRole;
 import com.musicexchange.service.ArtistService;
 import com.musicexchange.service.FanService;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Optional;
-
-/**
- * User controller handling artist and fan authentication
- */
-@Controller // Use @Controller when returning Thymeleaf templates
-@RequestMapping("/user")
+@Slf4j
+@Controller
 public class UserController {
+
     private final ArtistService artistService;
     private final FanService fanService;
 
@@ -29,94 +25,123 @@ public class UserController {
         this.fanService = fanService;
     }
 
-    @GetMapping("/home")
-    public String home(Model model) {
-        model.addAttribute("message", "welcome to MusicExchange");
-        return "home";
+    @PostMapping("/login")
+    public String processLogin(@RequestParam String username,
+                               @RequestParam String password,
+                               HttpSession session,
+                               Model model) {
+
+        // Use the service to check if the user exists and the password matches
+        return artistService.authenticateArtist(username, password)
+                .map(artist -> {
+                    // If login is successful, save the artist object in the session
+                    // This lets other pages know who is currently logged in
+                    session.setAttribute("user", artist);
+                    session.setAttribute("userType", "ARTIST");
+
+                    log.info("Artist {} logged in", username);
+                    return "redirect:/artist/dashboard";
+                })
+                .orElseGet(() -> {
+                    // If login fails, show an error message on the login screen
+                    log.warn("Login failed for: {}", username);
+                    model.addAttribute("error", "Invalid username or password.");
+                    return "login";
+                });
+    }
+
+    @GetMapping("/artist/dashboard")
+    public String artistDashboard(HttpSession session, Model model) {
+        // Pull the artist out of the session
+        Artist artist = (Artist) session.getAttribute("user");
+
+        // If the session is empty, it means they aren't logged in
+        if (artist == null) {
+            log.debug("Unauthorized dashboard access attempt");
+            return "redirect:/login";
+        }
+
+        // Add the artist to the model so we can show their name/email on the HTML page
+        model.addAttribute("artist", artist);
+        return "artist-dashboard";
     }
 
     @PostMapping("/signup")
-    public String processSignup(@RequestParam String username, @RequestParam String email,
-                                @RequestParam String password, @RequestParam UserRole role, Model model)
-    {
+    public String processSignup(@RequestParam String username,
+                                @RequestParam String email,
+                                @RequestParam String password,
+                                @RequestParam UserRole role,
+                                Model model) {
         try {
-            // Validate username
-            if (username == null || username.isEmpty()) {
-                model.addAttribute("error", "Username is required");
-                return "signup";
-            }
-
-            // Validate email
-            if (email == null || !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
-                model.addAttribute("error", "Please enter a valid email address");
-                return "signup";
-            }
-
-            // Validate password
-            String passwordRegex = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
-            if (password == null || !password.matches(passwordRegex)) {
-                model.addAttribute("error",
-                        "Password must be at least 8 characters long, contain at least one uppercase letter, one number, and one special character (@$!%*?&)");
-                return "signup";
-            }
-
-            // Artist creation post succesful validation
+            // Check if the user is an Artist or a Fan and save them to the database
             if (role == UserRole.ARTIST) {
                 artistService.createArtist(username, email, password);
-                return "redirect:/artist/dashboard";
-            }
-            // Fan creation post successful validation
-            else if (role == UserRole.FAN) {
+            } else if (role == UserRole.FAN) {
                 fanService.createFan(username, email, password);
-                return "redirect:/fan/dashboard";
-            } else {
-                model.addAttribute("error", "Please select a valid role");
-                return "signup";
             }
 
+            log.info("New user registered: {}", username);
+            return "redirect:/login?success=true";
+
         } catch (Exception e) {
-            model.addAttribute("error", "Error during signup: " + e.getMessage());
-            model.addAttribute("role", role); // Preserve selected role
+            // Log the error if the database save fails (like a duplicate username)
+            log.error("Signup failed: {}", e.getMessage());
+            model.addAttribute("error", "Could not create account. Please try again.");
             return "signup";
         }
     }
 
-    @GetMapping("/signup")
-    public String signUpPage() {
-        return "signup";
+    @PostMapping("/updateartistemail")
+    public String updateArtistEmail(HttpSession session,
+                                    @RequestParam String email,
+                                    RedirectAttributes redirectAttributes) {
+        // Security: Get the artist from the session, not a hidden input field
+        Artist artist = (Artist) session.getAttribute("user");
+
+        if (artist == null) {
+            return "redirect:/login";
+        }
+
+        // Use the ID from the session to update the correct user in the database
+        artistService.updateArtistEmail(artist.getArtistId(), email);
+
+        // Sync the session object so the dashboard shows the new email immediately
+        artist.setEmail(email);
+        session.setAttribute("user", artist);
+
+        // Send a little success message to the dashboard
+        redirectAttributes.addFlashAttribute("message", "Email updated successfully!");
+        log.info("Artist {} updated their email", artist.getUsername());
+
+        return "redirect:/artist/dashboard";
     }
 
-    @PostMapping("/login")
-    public String toLogin(@RequestParam String username,
-                          @RequestParam String password,
-                          HttpSession session,
-                          Model model) {
+    @PostMapping("/updateartistpassword")
+    public String updateArtistPassword(HttpSession session,
+                                       @RequestParam String password,
+                                       RedirectAttributes redirectAttributes) {
+        // Securely get the logged-in user's info
+        Artist artist = (Artist) session.getAttribute("user");
 
-        try {
-            // Use of artistService's authenticate method
-            Optional<Artist> artist = artistService.authenticateArtist(username, password);
-            if (artist.isPresent()) {
-                session.setAttribute("user", artist.get());
-                session.setAttribute("userType", "ARTIST");
-                return "redirect:/artist/dashboard";
-            }
-
-            // Use of fanService's authenticate method
-            Optional<Fan> fan = fanService.authenticateFan(username, password);
-            if (fan.isPresent()) {
-                session.setAttribute("user", fan.get());
-                session.setAttribute("userType", "FAN");
-                return "redirect:/fan/dashboard";
-            }
-
-            // Login failed
-            model.addAttribute("error", "Invalid username or password");
-            return "login";
-
-        } catch (Exception e) {
-            model.addAttribute("error", "Login failed: " + e.getMessage());
-            return "login";
+        if (artist == null) {
+            return "redirect:/login";
         }
+
+        // Pass the ID and the new password to the service for encoding and saving
+        artistService.updateArtistPassword(artist.getArtistId(), password);
+
+        redirectAttributes.addFlashAttribute("message", "Password updated successfully!");
+        log.info("Artist {} changed their password", artist.getUsername());
+
+        return "redirect:/artist/dashboard";
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        // Delete all session data to log the user out safely
+        session.invalidate();
+        log.info("User logged out");
+        return "redirect:/login?logout=true";
     }
 
     @GetMapping("/login")
@@ -124,18 +149,8 @@ public class UserController {
         return "login";
     }
 
-    // Fixed: Added @RequestParam to capture data from the form/request
-    @PostMapping("/updateartistemail")
-    public String updateArtistEmail(@RequestParam Long id, @RequestParam String email, Model model) {
-        artistService.updateArtistEmail(id, email);
-        // Note: model attributes don't persist through a redirect unless using RedirectAttributes
-        return "redirect:/artist/dashboard";
-    }
-
-    // Fixed: Changed from @DeleteMapping (HTML forms only support GET/POST natively)
-    @PostMapping("/updateartistpassword")
-    public String updateArtistPassword(@RequestParam Long id, @RequestParam String password, Model model) {
-        artistService.updateArtistPassword(id, password);
-        return "redirect:/artist/dashboard";
+    @GetMapping("/signup")
+    public String signUpPage() {
+        return "signup";
     }
 }

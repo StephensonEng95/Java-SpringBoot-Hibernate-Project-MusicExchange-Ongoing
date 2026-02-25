@@ -2,22 +2,17 @@ package com.musicexchange.service;
 
 import com.musicexchange.models.Artist;
 import com.musicexchange.repository.ArtistRepository;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
-/**
- * Artist service layer handling business logic for artist entities
- */
 @Service
 @Transactional
 @Slf4j
 public class ArtistService {
 
-    // Marked as final to ensure they are assigned via constructor (best practice)
     private final ArtistRepository artistRepo;
     private final PasswordEncoder passwordEncoder;
 
@@ -26,81 +21,76 @@ public class ArtistService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Creates new artist with provided parameters at signup
-     */
-    public Artist createArtist(String username, String email, String rawPassword) {
-        log.info("Attempting to create artist with username: {}", username);
+    public Optional<Artist> getArtistById(Long artistId) {
+        return artistRepo.findById(artistId);
+    }
 
-        if(artistRepo.existsByUsername(username)) {
-            log.warn("Duplicate username attempt: {}", username);
-            throw new RuntimeException("Username '" + username + "' is already taken");
+    public void createArtist(String username, String email, String password) {
+        if (artistRepo.existsByUsername(username)) {
+            throw new RuntimeException("Artist username already exists.");
         }
-
-        if(artistRepo.existsByEmail(email)) {
-            log.warn("Duplicate email attempt: {}", email);
-            throw new RuntimeException("Email '" + email + "' is already taken");
+        if (artistRepo.existsByEmail(email)) {
+            throw new RuntimeException("Artist email already exists.");
         }
 
         Artist artist = new Artist();
         artist.setUsername(username);
         artist.setEmail(email);
-        // Encoding the password before saving
-        artist.setPassword(passwordEncoder.encode(rawPassword));
 
-        Artist savedArtist = artistRepo.save(artist);
-        log.debug("Artist created successfully with id: {}", savedArtist.getId());
-        return savedArtist;
+        // Encodes the raw password into a BCrypt hash before saving
+        artist.setPassword(passwordEncoder.encode(password));
+
+        artistRepo.save(artist);
+        log.info("Artist created successfully with ID: {} and username : {}",artist.getArtistId(), artist.getUsername());
     }
 
     /**
-     * Authenticates an artist by checking credentials
+     * This is the logic used by the UserController for login.
+     * It finds the user by username first, then uses the encoder
+     * to verify if the raw password matches the stored hash.
      */
-    public Optional<Artist> authenticateArtist(String username, String rawPassword) {
-        log.info("Authenticating artist: {}", username);
+    public Optional<Artist> authenticateArtist(String username, String password) {
+        log.debug("Attempting authentication for artist: {}", username);
 
         return artistRepo.findByUsername(username)
-                .filter(artist -> passwordEncoder.matches(rawPassword, artist.getPassword()));
+                .filter(artist -> {
+                    boolean matches = passwordEncoder.matches(password, artist.getPassword());
+
+                    if (!matches) {
+
+                        log.warn("Authentication failed: Invalid password for artist '{}'", username);
+                    }
+
+                    return matches;
+                });
+
     }
 
-    /**
-     * Updates artist email using JPA's persistent context
-     */
-    public void updateArtistEmail(Long id, String email) {
-        log.info("Updating email for artist id: {}", id);
-
-        Artist artist = artistRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Can't find Artist with id: " + id));
-
-        artist.setEmail(email);
-        artistRepo.save(artist); // JPA handles the update automatically
-        log.debug("Artist email updated successfully");
+    public void updateArtistEmail(Long artistId, String email) {
+        artistRepo.findById(artistId).ifPresent(artist -> {
+            artist.setEmail(email);
+            artistRepo.save(artist);
+        });
+        log.info("Email update successful for :{}",artistId);
     }
 
-    /**
-     * Updates artist password with proper encoding
-     */
-    public void updateArtistPassword(Long id, String rawPassword) {
-        log.info("Updating password for artist id: {}", id);
+    public void updateArtistPassword(Long artistId, String password) {
+        artistRepo.findById(artistId).ifPresent(artist -> {
+            // Re-hashes the new password during an update
+            artist.setPassword(passwordEncoder.encode(password));
+            artistRepo.save(artist);
+        });
+        log.info("Password update successful for :{}",artistId);
 
-        Artist artist = artistRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Can't find Artist with id: " + id));
-
-        // Crucial: Encode the new password
-        artist.setPassword(passwordEncoder.encode(rawPassword));
-        artistRepo.save(artist);
     }
 
-    /**
-     * Deletes an artist entity by id
-     */
-    public void deleteArtist(Long id) {
-        log.info("Deleting artist with id: {}", id);
+    public void deleteByArtistId(Long artistId){
+        artistRepo.findById(artistId)
+                .ifPresentOrElse(
+                        artistRepo::delete,
+                        () -> { throw new RuntimeException("Artist not found for ID: " + artistId); }
+                );
+        log.info("Artist deletion successful for :{}",artistId);
 
-        if (!artistRepo.existsById(id)) {
-            throw new RuntimeException("Cannot delete: Artist not found");
-        }
-
-        artistRepo.deleteById(id);
     }
 }

@@ -1,151 +1,190 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<title>Insert title here</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add New Song - MusicExchange</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif;
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: var(--text-main);
         }
+
         .container {
-            max-width: 600px;
+            max-width: 550px;
             margin: 0 auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
         }
+
         h1 {
-            color: #333;
+            color: var(--dark-bg);
             text-align: center;
+            margin-top: 0;
             margin-bottom: 30px;
+            font-size: 28px;
+            letter-spacing: -0.5px;
         }
+
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
+
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 14px;
+            text-transform: uppercase;
         }
+
         input[type="text"],
         input[type="number"],
         input[type="date"],
         select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 8px;
             font-size: 16px;
-            box-sizing: border-box;
+            transition: all 0.3s ease;
+            outline: none;
+            background-color: #fafafa;
         }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+        }
+
         button {
-            background-color: #28a745;
+            background-color: var(--primary-color);
             color: white;
-            padding: 12px 30px;
+            padding: 15px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
+            font-weight: bold;
             width: 100%;
+            transition: transform 0.2s, background 0.3s;
+            margin-top: 10px;
         }
+
         button:hover {
-            background-color: #218838;
+            background-color: #357abd;
+            transform: translateY(-2px);
         }
+
+        button:active {
+            transform: translateY(0);
+        }
+
         .message {
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 8px;
             text-align: center;
+            font-weight: 500;
         }
+
         .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background-color: #dff9fb;
+            color: var(--success-color);
+            border-left: 5px solid var(--success-color);
         }
+
         .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background-color: #ffeaa7;
+            color: var(--error-color);
+            border-left: 5px solid var(--error-color);
         }
+
         .back-link {
             display: block;
             text-align: center;
-            margin-top: 20px;
-            color: #007bff;
+            margin-top: 25px;
+            color: var(--primary-color);
             text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Junior comment: Small helper for hidden IDs */
+        .id-badge {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
         }
     </style>
 </head>
 <body>
 <div class="container">
-        <h1>Add New Song</h1>
-        
-        <!-- Display messages -->
-        <div th:if="${message}" class="message success" th:text="${message}"></div>
-        <div th:if="${error}" class="message error" th:text="${error}"></div>
+    <h1>Add New Song</h1>
 
-        <form th:action="@{/song/add}" method="post">
-            <!-- Song Title -->
-            <div class="form-group">
-                <label for="songTitle">Song Title:</label>
-                <input type="text" id="songTitle" name="songTitle" required 
-                       placeholder="Enter song title">
-            </div>
+    <div th:if="${message}" class="message success" th:text="${message}"></div>
+    <div th:if="${error}" class="message error" th:text="${error}"></div>
 
-            <!-- Genre -->
-            <div class="form-group">
-                <label for="genre">Genre:</label>
-                <select id="genre" name="genre" required>
-                    <option value="">Select Genre</option>
-                    <option value="ROCK">Rock</option>
-                    <option value="POP">Pop</option>
-                    <option value="JAZZ">Jazz</option>
-                    <option value="HIPHOP">Hip Hop</option>
-                    <option value="CLASSICAL">Classical</option>
-                    <option value="ELECTRONIC">Electronic</option>
-                    <option value="COUNTRY">Country</option>
-                    <option value="RNB">R&B</option>
-                    <option value="METAL">Metal</option>
-                    <option value="OTHER">Other</option>
-                </select>
-            </div>
+    <form th:action="@{/song/add}" method="post">
 
-            <!-- Duration -->
-            <div class="form-group">
-                <label for="duration">Duration (seconds):</label>
-                <input type="number" id="duration" name="duration" 
-                       min="1" max="3600" required placeholder="Duration in seconds">
-            </div>
+        <div class="form-group">
+            <label for="songTitle">Song Title</label>
+            <input type="text" id="songTitle" name="songTitle" required
+                   placeholder="e.g. Bohemian Rhapsody">
+        </div>
 
-            <!-- Release Date -->
-            <div class="form-group">
-                <label for="releaseDate">Release Date:</label>
-                <input type="date" id="releaseDate" name="releaseDate" required>
-            </div>
+        <div class="form-group">
+            <label for="genre">Genre</label>
+            <select id="genre" name="genre" required>
+                <option value="" disabled selected>Choose a genre</option>
+                <option value="ROCK">Rock</option>
+                <option value="POP">Pop</option>
+                <option value="JAZZ">Jazz</option>
+                <option value="HIPHOP">Hip Hop</option>
+                <option value="ELECTRONIC">Electronic</option>
+                <option value="RnB">RnB</option>
+                <option value="Afro">Afro</option>
+                <option value="OTHER">Other</option>
+            </select>
+        </div>
 
-            <!-- Artist Username (hidden if user is logged in as artist) -->
-            <div class="form-group" th:if="${session.userType != 'ARTIST'}">
-                <label for="username">Artist Username:</label>
-                <input type="text" id="username" name="username" required 
-                       placeholder="Enter your Artist username">
-            </div>
-            
-            <!-- If user is logged in as artist, use their username automatically -->
-            <input th:if="${session.userType == 'ARTIST'}" 
-                   type="hidden" name="username" th:value="${session.user.username}">
+        <div th:if="${session.userType != 'ARTIST'}" class="form-group">
+            <label for="artistId">Artist ID</label>
+            <input type="number" id="artistId" name="artistId" required
+                   placeholder="Enter the Artist's numeric ID">
+        </div>
 
-            <!-- Submit Button -->
-            <button type="submit">Add Song</button>
-        </form>
+        <div th:if="${session.userType == 'ARTIST'}">
+            <input type="hidden" name="artistId" th:value="${session.user.artistid}">
+            <p class="id-badge">Posting as: <strong th:text="${session.user.username}">Artist</strong></p>
+        </div>
 
-        <a th:href="@{/home}" class="back-link">Back to Home</a>
-    </div>
+        <button type="submit">Upload Song</button>
+    </form>
+
+    <a th:href="@{/home}" class="back-link">← Back to Dashboard</a>
+</div>
 </body>
 </html>

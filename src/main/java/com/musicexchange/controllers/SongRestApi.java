@@ -17,27 +17,28 @@ public class SongRestApi {
         this.songService = songService;
     }
 
-    // Get the full list of songs as JSON
+    // Returns all songs in the database as a JSON list
     @GetMapping
     public List<Song> getAllSongs() {
         return songService.getAllSongs();
     }
 
-    // Get songs for a specific artist via their ID
+    // Fetches songs for a specific artist using the artistId
     @GetMapping("/artist/{artistId}")
     public ResponseEntity<List<Song>> getSongsByArtist(@PathVariable Long artistId) {
-        List<Song> songs = songService.getSongsByArtistId(artistId);
+        List<Song> songs = songService.getSongsByArtist(artistId);
         return ResponseEntity.ok(songs);
     }
 
-    // API endpoint to delete a song by title
-    @DeleteMapping("/{title}")
-    public ResponseEntity<String> deleteSong(@PathVariable String title) {
+    // Endpoint to delete a song based on the unique song_id primary key
+    @DeleteMapping("/{song_id}")
+    public ResponseEntity<String> deleteSong(@PathVariable Long songId) {
         try {
-            songService.deleteSong(title);
+
+            songService.deleteSong(songId);
             return ResponseEntity.ok("Song deleted successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+            return ResponseEntity.status(404).body("Error: " + e.getMessage());
         }
     }
 }

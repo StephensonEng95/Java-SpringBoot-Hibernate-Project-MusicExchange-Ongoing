@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Artist Dashboard | Music Exchange</title>
+    <!-- We are using Bootstrap 5 to make the page look modern without writing much CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net">
+    <style>
+        .card { border-radius: 10px; }
+        .stat-card { border-left: 5px solid #28a745; }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark p-3">
+    <div class="container">
+        <a class="navbar-brand" href="#">Music Exchange - Artist Studio</a>
+        <!-- Using th:href ensures the logout link works correctly with our Controller's @GetMapping -->
+        <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
+    </div>
+</nav>
+
+<div class="container mt-5">
+
+    <!-- This block only shows up if we send a "message" from the controller after updating profile info -->
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${message}">Success message goes here</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col">
+            <!-- This greets the user by the name stored in the 'artist' model we passed from the Java side -->
+            <h1 class="fw-bold">Hey, <span th:text="${artist.username}">Artist</span>!</h1>
+            <p class="text-muted">Here is what's happening with your music today.</p>
+        </div>
+    </div>
+
+    <!-- These cards show the stats by counting the lists inside the artist object -->
+    <div class="row text-center mb-5">
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4 stat-card" style="border-left-color: #007bff;">
+                <h6 class="text-uppercase text-muted">My Songs</h6>
+                <h2 class="display-6" th:text="${#lists.size(artist.songs)}">0</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4 stat-card">
+                <h6 class="text-uppercase text-muted">Total Followers</h6>
+                <h2 class="display-6" th:text="${#lists.size(artist.followers)}">0</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm p-4 stat-card" style="border-left-color: #ffc107;">
+                <h6 class="text-uppercase text-muted">Status</h6>
+                <h2 class="h4 mt-2"><span class="badge bg-success">Active</span></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm p-4">
+                <h5 class="mb-3">Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <a th:href="@{/songs/new}" class="btn btn-primary">Upload New Song</a>
+                    <a th:href="@{/artist/profile}" class="btn btn-outline-dark">Edit My Profile</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm p-4">
+                <h5 class="mb-3">Latest Tracks</h5>
+                <table class="table table-hover">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Genre</th>
+                        <th>Date Uploaded</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- This loops through every song the artist has and adds a row for it -->
+                    <tr th:each="song : ${artist.songs}">
+                        <td th:text="${song.songTitle}">Song Title</td>
+                        <td th:text="${song.genre}">Genre</td>
+                        <td th:text="${song.dateCreated}">Date</td>
+                    </tr>
+                    <!-- This only displays if the artist hasn't uploaded anything yet -->
+                    <tr th:if="${#lists.isEmpty(artist.songs)}">
+                        <td colspan="3" class="text-center text-muted py-4">
+                            No songs found.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- This script is needed to make the 'X' button work on the success alerts -->
+<script src="https://cdn.jsdelivr.net"></script>
+</body>
+</html>

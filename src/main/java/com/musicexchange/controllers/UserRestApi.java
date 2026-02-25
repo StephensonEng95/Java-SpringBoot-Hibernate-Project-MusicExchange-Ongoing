@@ -1,60 +1,67 @@
 package com.musicexchange.controllers;
 
+import com.musicexchange.models.Artist;
 import com.musicexchange.service.ArtistService;
-import com.musicexchange.service.FanService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.Optional;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api")
 public class UserRestApi {
 
     private final ArtistService artistService;
-    private final FanService fanService;
 
-    public UserRestApi(ArtistService artistService, FanService fanService) {
+    // Use constructor injection to get our service
+    public UserRestApi(ArtistService artistService) {
         this.artistService = artistService;
-        this.fanService = fanService;
     }
 
-    // Handles signup by checking the role string in the JSON body
-    @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody Map<String, String> data) {
-        String role = data.get("role");
-        String user = data.get("username");
-        String email = data.get("email");
-        String pass = data.get("password");
+    @GetMapping("/artist/{id}")
+    public ResponseEntity<Artist> getArtist(@PathVariable Long id) {
+        // Try to find the artist and return 404 if they don't exist
+        return artistService.getArtistById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> {
+                    log.debug("Artist with ID {} not found", id);
+                    return ResponseEntity.notFound().build();
+                });
+    }
 
-        if ("ARTIST".equalsIgnoreCase(role)) {
-            artistService.createArtist(user, email, pass);
-            return new ResponseEntity<>("Artist registered", HttpStatus.CREATED);
-        } else if ("FAN".equalsIgnoreCase(role)) {
-            fanService.createFan(user, email, pass);
-            return new ResponseEntity<>("Fan registered", HttpStatus.CREATED);
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password) {
+        // 1. Calls service to check credentials
+        Optional<Artist> artist = artistService.authenticateArtist(username, password);
+
+        if (artist.isPresent()) {
+            log.info("API Login successful for: {}", username);
+            // Returns the Artist object with a 200 OK status
+            return ResponseEntity.ok(artist.get());
+        } else {
+            log.warn("API Login failed for user: {}", username);
+            //Returns a simple String message with a 401 Unauthorized status
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid username or password.");
         }
-
-        return ResponseEntity.badRequest().body("Invalid role provided");
     }
 
-    @PatchMapping("/artist/{id}/email")
-    public ResponseEntity<Void> updateArtistEmail(@PathVariable Long id, @RequestParam String email) {
-        artistService.updateArtistEmail(id, email);
-        return ResponseEntity.ok().build();
-    }
 
-    @PutMapping("/artist/{id}/password")
-    public ResponseEntity<Void> updateArtistPassword(@PathVariable Long id, @RequestParam String password) {
-        artistService.updateArtistPassword(id, password);
-        return ResponseEntity.noContent().build();
-    }
+    @PostMapping("/signup")
+    public ResponseEntity<String> signup(@RequestBody Artist artist) {
+        try {
+            // Send the raw data to the service so it can handle hashing the password
+            artistService.createArtist(artist.getUsername(), artist.getEmail(), artist.getPassword());
 
-    // Clean delete for a specific artist
-    @DeleteMapping("/artist/{id}")
-    public ResponseEntity<Void> removeArtist(@PathVariable Long id) {
-        // artistService.deleteArtist(id);
-        return ResponseEntity.noContent().build();
+            log.info("New artist registered via API: {}", artist.getUsername());
+            return ResponseEntity.ok("Artist registered successfully.");
+        } catch (Exception e) {
+            // If the service throws an error (like a duplicate email), log it and return 400
+            log.error("API Signup error: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("Signup failed: " + e.getMessage());
+        }
     }
 }
