@@ -2,107 +2,174 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Artist Dashboard | Music Exchange</title>
-    <!-- We are using Bootstrap 5 to make the page look modern without writing much CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
     <style>
-        .card { border-radius: 10px; }
-        .stat-card { border-left: 5px solid #28a745; }
+        body { background-color: #f8f9fa; }
+        .card { border: none; border-radius: 12px; }
+
+        /* Profile Image Styles */
+        .profile-wrapper {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto;
+        }
+        .profile-img {
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background-color: #e9ecef;
+        }
+        .upload-badge {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: #0d6efd;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 3px solid white;
+            transition: all 0.2s ease;
+        }
+        .upload-badge:hover {
+            background: #0056b3;
+            transform: scale(1.1);
+        }
+        #imageInput { display: none; }
+
+        /* Table Styles */
+        .table-card { overflow: hidden; }
+        .stat-card { border-left: 5px solid #0d6efd; }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-dark bg-dark p-3">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="#">Music Exchange - Artist Studio</a>
-        <!-- Using th:href ensures the logout link works correctly with our Controller's @GetMapping -->
-        <a th:href="@{/logout}" class="btn btn-danger btn-sm">Logout</a>
+        <a class="navbar-brand fw-bold" href="#">MUSIC EXCHANGE</a>
+        <div class="ms-auto">
+            <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm">Logout</a>
+        </div>
     </div>
 </nav>
 
-<div class="container mt-5">
+<div class="container">
 
-    <!-- This block only shows up if we send a "message" from the controller after updating profile info -->
-    <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <span th:text="${message}">Success message goes here</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    <div class="row align-items-center mb-5">
+        <div class="col-md-3 text-center">
+            <div class="profile-wrapper">
+                <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                     alt="Profile" class="profile-img" id="profileDisplay">
 
-    <div class="row mb-4">
-        <div class="col">
-            <!-- This greets the user by the name stored in the 'artist' model we passed from the Java side -->
-            <h1 class="fw-bold">Hey, <span th:text="${artist.username}">Artist</span>!</h1>
-            <p class="text-muted">Here is what's happening with your music today.</p>
-        </div>
-    </div>
+                <label for="imageInput" class="upload-badge shadow">
+                    <i class="bi bi-camera-fill"></i>
+                </label>
 
-    <!-- These cards show the stats by counting the lists inside the artist object -->
-    <div class="row text-center mb-5">
-        <div class="col-md-4">
-            <div class="card shadow-sm p-4 stat-card" style="border-left-color: #007bff;">
-                <h6 class="text-uppercase text-muted">My Songs</h6>
-                <h2 class="display-6" th:text="${#lists.size(artist.songs)}">0</h2>
+                <form th:action="@{/artist/upload-image}" method="post" enctype="multipart/form-data" id="imageForm">
+                    <input type="file" id="imageInput" name="profileImage" accept="image/*" onchange="previewAndSubmit(this)">
+                </form>
             </div>
         </div>
+        <div class="col-md-9 text-center text-md-start mt-3 mt-md-0">
+            <h1 class="display-5 fw-bold mb-1">Hey, <span th:text="${artist.username}">Artist</span>!</h1>
+            <p class="lead text-muted" th:text="${artist.email}">email@example.com</p>
+            <span th:class="${artist.active} ? 'badge bg-success' : 'badge bg-secondary'"
+                  th:text="${artist.active ? 'Verified Artist' : 'Pending Verification'}">Status</span>
+        </div>
+    </div>
 
-        <div class="col-md-4">
+    <div th:if="${message}" class="alert alert-info alert-dismissible fade show" role="alert">
+        <span th:text="${message}">Message goes here</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
             <div class="card shadow-sm p-4 stat-card">
-                <h6 class="text-uppercase text-muted">Total Followers</h6>
-                <h2 class="display-6" th:text="${#lists.size(artist.followers)}">0</h2>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm p-4 stat-card" style="border-left-color: #ffc107;">
-                <h6 class="text-uppercase text-muted">Status</h6>
-                <h2 class="h4 mt-2"><span class="badge bg-success">Active</span></h2>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm p-4">
-                <h5 class="mb-3">Quick Actions</h5>
-                <div class="d-grid gap-2">
-                    <a th:href="@{/songs/new}" class="btn btn-primary">Upload New Song</a>
-                    <a th:href="@{/artist/profile}" class="btn btn-outline-dark">Edit My Profile</a>
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-muted text-uppercase fw-bold small">Track Library</h6>
+                        <h2 class="mb-0 fw-bold" th:text="${artist.songs.size()}">0</h2>
+                    </div>
+                    <i class="bi bi-music-note-list fs-1 text-primary"></i>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-8">
-            <div class="card shadow-sm p-4">
-                <h5 class="mb-3">Latest Tracks</h5>
-                <table class="table table-hover">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Title</th>
-                        <th>Genre</th>
-                        <th>Date Uploaded</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <!-- This loops through every song the artist has and adds a row for it -->
-                    <tr th:each="song : ${artist.songs}">
-                        <td th:text="${song.songTitle}">Song Title</td>
-                        <td th:text="${song.genre}">Genre</td>
-                        <td th:text="${song.dateCreated}">Date</td>
-                    </tr>
-                    <!-- This only displays if the artist hasn't uploaded anything yet -->
-                    <tr th:if="${#lists.isEmpty(artist.songs)}">
-                        <td colspan="3" class="text-center text-muted py-4">
-                            No songs found.
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+        <div class="col-md-6">
+            <div class="card shadow-sm p-4 stat-card" style="border-left-color: #198754;">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-muted text-uppercase fw-bold small">Account Activity</h6>
+                        <h2 class="mb-0 fw-bold">Active</h2>
+                    </div>
+                    <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm table-card">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">Latest Songs</h5>
+            <button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Add New</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Title</th>
+                    <th>Genre</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="song : ${artist.songs}">
+                    <td class="ps-4 fw-bold" th:text="${song.songTitle}">Title</td>
+                    <td><span class="badge rounded-pill bg-light text-dark border" th:text="${song.genre}">Genre</span></td>
+                    <td class="text-end pe-4">
+                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                    </td>
+                </tr>
+                <tr th:if="${artist.songs.empty}">
+                    <td colspan="3" class="text-center py-5 text-muted">
+                        <i class="bi bi-cloud-slash display-4"></i>
+                        <p class="mt-2">No tracks found. Upload your first masterpiece!</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<!-- This script is needed to make the 'X' button work on the success alerts -->
-<script src="https://cdn.jsdelivr.net"></script>
+<script>
+    function previewAndSubmit(input) {
+        if (input.files && input.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('profileDisplay').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+
+            // In a real app, you might want to auto-submit the form:
+            // document.getElementById('imageForm').submit();
+            alert("Image selected! Form is ready to submit to /artist/upload-image");
+        }
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

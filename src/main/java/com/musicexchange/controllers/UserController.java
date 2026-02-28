@@ -95,7 +95,7 @@ public class UserController {
     public String updateArtistEmail(HttpSession session,
                                     @RequestParam String email,
                                     RedirectAttributes redirectAttributes) {
-        // Security: Get the artist from the session, not a hidden input field
+        // Get the artist from the session, not a hidden input field
         Artist artist = (Artist) session.getAttribute("user");
 
         if (artist == null) {

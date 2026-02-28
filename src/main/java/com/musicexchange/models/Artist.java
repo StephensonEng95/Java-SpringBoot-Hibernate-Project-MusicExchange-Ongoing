@@ -6,6 +6,7 @@ import lombok.ToString;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -30,15 +31,17 @@ public class Artist {
     private LocalDate releaseDate;
     @Column(name = "release_time")
     private LocalTime releaseTime;
+    @Column(name = "profile_picture")
+    private String profilePicture;
 
     // Establishing relationship so we can pull songs for the dashboard
-    @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Song> songs;
+    @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Song> songs = new ArrayList<>();
 
-    // This method automatically persists the variables in the database
     @PrePersist
     public void onCreate(){
         this.isActive = true;
+        this.profilePicture = "default-profile.png";
         this.releaseDate = LocalDate.now();
         this.releaseTime = LocalTime.now();
     }

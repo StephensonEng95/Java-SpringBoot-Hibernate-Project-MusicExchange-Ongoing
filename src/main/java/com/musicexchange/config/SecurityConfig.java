@@ -14,31 +14,27 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Switching to BCrypt to handle the heavy lifting of password hashing
+        // I am using BCrypt to handle password encryption for MySQL.
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Disabling CSRF so our custom login and signup forms work without extra tokens
+                // I am disabling CSRF so our custom POST login works without tokens.
                 .csrf(csrf -> csrf.disable())
 
-                // Defining access rules: making public routes available while securing the rest
                 .authorizeHttpRequests(auth -> auth
+                        // I am permitting these routes so they are accessible to everyone.
                         .requestMatchers("/", "/login", "/signup", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/api/**").permitAll()
+                        // I added these to prevent the 403 Access Denied error on the dashboard.
                         .requestMatchers("/song/**", "/artist/**", "/fan/**").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
 
-                // Configuring the app to use my custom login page instead of the Spring default
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .permitAll()
-                )
+                // I removed .formLogin() so the UserController can handle the session.
 
-                // Setting up the logout process and redirecting back to the login screen
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout=true")
