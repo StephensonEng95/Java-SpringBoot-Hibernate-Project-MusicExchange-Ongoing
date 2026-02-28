@@ -1,104 +1,96 @@
 package com.musicexchange.service;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import java.util.Optional;
 import com.musicexchange.models.Artist;
 import com.musicexchange.repository.ArtistRepository;
- 
-import jakarta.transaction.Transactional;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
 
-
-/**
- * Artist service layer handling business logic for 
- * artist entities
- */
 @Service
 @Transactional
 @Slf4j
 public class ArtistService {
-	
-	private ArtistRepository artistRepo; 
-	private PasswordEncoder passwordEncoder;
-	
-	public ArtistService(ArtistRepository artistRepo, PasswordEncoder passwordEncoder)
-	{
+
+    private final ArtistRepository artistRepo;
+    private final PasswordEncoder passwordEncoder;
+
+    public ArtistService(ArtistRepository artistRepo, PasswordEncoder passwordEncoder) {
         this.artistRepo = artistRepo;
         this.passwordEncoder = passwordEncoder;
     }
-	/**
-	 * creates new artist with provided parameters at signup
-	 * @param username artist's username
-	 * @param email artist's email
-	 * @param rawPassword plain text password to be encoded
-	 * @return savedArtist artist's entity 
-	 */
-	public Artist createArtist(String username,String email,String rawPassword)
-	{
-		log.info("Creating artist with username: {}", username);
-		if(artistRepo.existsByUsername(username)) {
-			log.warn("duplicate username creation attempt: {}" + username);
-			throw new RuntimeException("username '" + username + "' is already taken" );
-		}
-		
-		if(artistRepo.existsByEmail(email)) {
-			log.warn("duplicate email creation attempt: {}" + email);
-			throw new RuntimeException("email '" + email + "' is already taken");
-		}
-		
-		Artist artist=new Artist();
-		artist.setUsername(username); 
-		artist.setEmail(email); 
-		artist.setPassword(passwordEncoder.encode(rawPassword)); 
 
-		Artist savedArtist = artistRepo.save(artist);
-		log.debug("Artist created succesfully with id: {}", savedArtist.getId());
-		return savedArtist;
-	} 
-	 public Optional<Artist> authenticateArtist(String username, String rawPassword)
-	 {
-		 log.info("Authenticating artist with username: {} and password: {}" + username + rawPassword);
-		 Optional<Artist> artist = artistRepo.findByUsername(username);
-	     if (artist.isPresent() && passwordEncoder.matches(rawPassword, artist.get().getPassword())) {
-	    	 log.debug("Authentication successful");
-	    	 return artist;
-	        }
-	     log.error("Authentication failed");
-	        return Optional.empty();
-	    }
-	 
-	public void updateArtistEmail(Long id,String email)
-	{
-		log.info("updating artist email with id: {}" + email + id);
-		Optional<Artist> artistOpt = artistRepo.findById(id);
-		if(artistOpt.isPresent()) {
-			artistRepo.updateArtistEmail(id, email);
-			log.debug("Artist with id: {}" + id + "updated succesfully");
+    public Optional<Artist> getArtistById(Long artistId) {
+        return artistRepo.findById(artistId);
+    }
 
-		}
-		else { 
-			log.warn("Attempted to update non existent Artist with id: {}" + id);
+    public void createArtist(String username, String email, String password) {
+        if (artistRepo.existsByUsername(username)) {
+            throw new RuntimeException("Artist username already exists.");
+        }
+        if (artistRepo.existsByEmail(email)) {
+            throw new RuntimeException("Artist email already exists.");
+        }
 
-			throw new RuntimeException("Can't find Artist with id" + id);
-		}		
-		
-	} 
-	
-	
-    public void updateArtistPassword(Long id, String password) 
-    {
-		artistRepo.updateArtistPassword(id, password);
-	}
-	
-	
-	public void deleteArtist(Long id) 
-	{
-		artistRepo.deleteArtist(id);
-	}
-	
-	
-	
+        Artist artist = new Artist();
+        artist.setUsername(username);
+        artist.setEmail(email);
+
+        // Encodes the raw password into a BCrypt hash before saving
+        artist.setPassword(passwordEncoder.encode(password));
+
+        artistRepo.save(artist);
+        log.info("Artist created successfully with ID: {} and username : {}",artist.getArtistId(), artist.getUsername());
+    }
+
+    /**
+     * This is the logic used by the UserController for login.
+     * It finds the user by username first, then uses the encoder
+     * to verify if the raw password matches the stored hash.
+     */
+    public Optional<Artist> authenticateArtist(String username, String password) {
+        log.debug("Attempting authentication for artist: {}", username);
+
+        return artistRepo.findByUsername(username)
+                .filter(artist -> {
+                    boolean matches = passwordEncoder.matches(password, artist.getPassword());
+
+                    if (!matches) {
+
+                        log.warn("Authentication failed: Invalid password for artist '{}'", username);
+                    }
+
+                    return matches;
+                });
+
+    }
+
+    public void updateArtistEmail(Long artistId, String email) {
+        artistRepo.findById(artistId).ifPresent(artist -> {
+            artist.setEmail(email);
+            artistRepo.save(artist);
+        });
+        log.info("Email update successful for :{}",artistId);
+    }
+
+    public void updateArtistPassword(Long artistId, String password) {
+        artistRepo.findById(artistId).ifPresent(artist -> {
+            // Re-hashes the new password during an update
+            artist.setPassword(passwordEncoder.encode(password));
+            artistRepo.save(artist);
+        });
+        log.info("Password update successful for :{}",artistId);
+
+    }
+
+    public void deleteByArtistId(Long artistId){
+        artistRepo.findById(artistId)
+                .ifPresentOrElse(
+                        artistRepo::delete,
+                        () -> { throw new RuntimeException("Artist not found for ID: " + artistId); }
+                );
+        log.info("Artist deletion successful for :{}",artistId);
+
+    }
 }

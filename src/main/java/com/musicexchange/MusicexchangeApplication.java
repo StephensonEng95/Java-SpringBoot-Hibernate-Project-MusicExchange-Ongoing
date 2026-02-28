@@ -1,11 +1,11 @@
-package com.musicexchange.musicexchange;
+package com.musicexchange;
 
 import org.springframework.boot.SpringApplication;
 //import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 //import org.springframework.boot.autoconfigure.domain.EntityScan;
 
-@SpringBootApplication(scanBasePackages="com.musicexchange.musicexchange")
+@SpringBootApplication//(scanBasePackages="com.musicexchange")
 //@EntityScan(basePackages = "com.musicexchange.models")
 public class MusicexchangeApplication {
 

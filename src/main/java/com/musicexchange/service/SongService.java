@@ -1,70 +1,76 @@
 package com.musicexchange.service;
-import java.time.LocalDate;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
 
 import com.musicexchange.models.Artist;
 import com.musicexchange.models.Song;
 import com.musicexchange.repository.ArtistRepository;
 import com.musicexchange.repository.SongRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
-/**
- * Song service layer handling business logic
- * for songs entities
- */
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
-@Slf4j
-public class SongService { 
-	
-	private SongRepository songRepository;
-	private ArtistRepository artistRepository;
-	
-	public SongService(SongRepository songsRepository, ArtistRepository artistRepository) {
-		this.songRepository = songsRepository;
-		this.artistRepository = artistRepository;
-	}
-	
-	public Song addSong(String songTitle, String genre, int duration, LocalDate release_date, String username) 
-	{   
-	    log.info("Adding song for artist: {}", username);
-	    
-	    if(songRepository.existsBySongTitle(songTitle)) {
-	    	log.warn("Song already exists" + songTitle);
-	    	throw new RuntimeException("Song already created" + songTitle);
-	    }
-	    
-	    Artist artist = artistRepository.findByUsername(artistUsername)
-	            .orElseThrow(() -> new RuntimeException("Artist not found with username: " + username));
-	    
-	    Song song = new Song();
-	    song.setSongTitle(songTitle);  
-	    song.setGenre(genre);
-	    song.setDuration(duration); 
-	    song.setReleaseDate(release_date);
-	    song.setArtist(artist);
-	    artist.addSong(song);
-	    log.debug("Song added successfully for artist: {}", username);
-	    return songRepository.save(song); 
-	}
-	
-	public List<Song> getSongsByArtistId(Long artistId) {
-	    return songRepository.findByArtistId(artistId);
-	} 
-	
-	public List<Song> getAllSongs(){
-		Artist artist = new Artist();
-		return artist.getSongs();
-	}
-	@Transactional
-	public void deleteSong(String songTitle) 
-	{
-		songRepository.deleteSongByTitle(songTitle); 
-	}  
-	
+public class SongService {
 
+    private final SongRepository songRepo;
+    private final ArtistRepository artistRepo;
+
+    // Using constructor injection as the preferred way to manage dependencies
+    public SongService(SongRepository songRepo, ArtistRepository artistRepo) {
+        this.songRepo = songRepo;
+        this.artistRepo = artistRepo;
+    }
+
+    // Standard method to save a song record
+    public void addSong(Song song) {
+        songRepo.save(song);
+    }
+
+    // Assigns an artist to a song before persisting it to the database
+    public Song addSongToArtist(Long artistid, Song song) {
+        Artist artist = artistRepo.findById(artistid)
+                .orElseThrow(() -> new RuntimeException("Artist not found for ID: " + artistid));
+
+        song.setArtist(artist);
+        return songRepo.save(song);
+    }
+
+    // Returns the full list of songs from the database
+    public List<Song> getAllSongs() {
+        return (List<Song>) songRepo.findAll();
+    }
+
+    // Updated parameter to song_id to match the primary key rename
+    public Song getSongById(Long song_id) {
+        Optional<Song> optionalSong = songRepo.findById(song_id);
+        if (optionalSong.isPresent()) {
+            return optionalSong.get();
+        } else {
+            return null;
+        }
+    }
+
+    // Persists changes to an existing song
+    public void updateSong(Song song) {
+        songRepo.save(song);
+    }
+
+    // Deletes a song record based on the updated song_id field
+    public void deleteSong(Long song_id) {
+        if (!songRepo.existsById(song_id)) {
+            throw new RuntimeException("Delete failed: Song ID " + song_id + " does not exist.");
+        }
+        songRepo.deleteById(song_id);
+    }
+
+    // Fetches all songs uploaded by a specific artist
+    public List<Song> getSongsByArtist(Long artistid) {
+        // Fetching the Artist object first to avoid the 'Artistid' naming conflict in JPA
+        Artist artist = artistRepo.findById(artistid)
+                .orElseThrow(() -> new RuntimeException("Artist not found for ID: " + artistid));
+
+        return songRepo.findByArtist(artist);
+    }
 }
