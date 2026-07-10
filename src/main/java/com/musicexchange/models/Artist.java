@@ -25,12 +25,12 @@ public class Artist {
     @Column(name = "password", nullable = false, length = 255)
     @ToString.Exclude
     private String password;
-    @Column(name = "is_active")
+    @Column(name = "active")
     private boolean isActive;
-    @Column(name = "release_date")
-    private LocalDate releaseDate;
-    @Column(name = "release_time")
-    private LocalTime releaseTime;
+    @Column(name = "creation_date")
+    private LocalDate creationDate;
+    @Column(name = "creation_time")
+    private LocalTime creationTime;
     @Column(name = "profile_picture")
     private String profilePicture;
 
@@ -42,7 +42,7 @@ public class Artist {
     public void onCreate(){
         this.isActive = true;
         this.profilePicture = "default-profile.png";
-        this.releaseDate = LocalDate.now();
-        this.releaseTime = LocalTime.now();
+        this.creationDate = LocalDate.now();
+        this.creationTime = LocalTime.now();
     }
 }

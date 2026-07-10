@@ -33,7 +33,7 @@ public class UserRestApi {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password) {
+    public ResponseEntity<?> login(@RequestParam(required = false) String username, @RequestParam(required = false) String password) {
         // 1. Calls service to check credentials
         Optional<Artist> artist = artistService.authenticateArtist(username, password);
 
@@ -64,4 +64,6 @@ public class UserRestApi {
             return ResponseEntity.badRequest().body("Signup failed: " + e.getMessage());
         }
     }
+
+
 }

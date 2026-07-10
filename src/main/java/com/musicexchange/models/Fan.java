@@ -25,12 +25,12 @@ public class Fan {
     @ToString.Exclude
     private String password;
 
-    @Column(name = "is_Active")
+    @Column(name = "active")
     private boolean isActive;
-    @Column(name = "release_date")
-    private LocalDate releaseDate;
-    @Column(name = "release_time")
-    private LocalTime releaseTime;
+    @Column(name = "creation_date")
+    private LocalDate creationDate;
+    @Column(name = "creation_time")
+    private LocalTime creationTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "artistid")
@@ -39,7 +39,7 @@ public class Fan {
     @PrePersist()
     public void onCreate(){
         this.isActive = true;
-        this.releaseDate = LocalDate.now();
-        this.releaseTime = LocalTime.now();
+        this.creationDate = LocalDate.now();
+        this.creationTime = LocalTime.now();
     }
 }

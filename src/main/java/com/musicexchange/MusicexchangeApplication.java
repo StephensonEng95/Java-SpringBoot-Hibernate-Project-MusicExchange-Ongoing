@@ -9,8 +9,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 //@EntityScan(basePackages = "com.musicexchange.models")
 public class MusicexchangeApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MusicexchangeApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(MusicexchangeApplication.class, args);
+    }
 
 }
