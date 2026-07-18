@@ -1,73 +1,88 @@
 # Artist & Fan Management System 🎤
 
-Hey there! I'm building this Spring Boot app to manage artists and fans because I love music and wanted to create something that combines my passions. It's been a great way to learn real-world backend development.
+A backend-focused Spring Boot application modeling a real artist/fan music platform — artists publish
+songs, fans follow artists and get notified when they do. I built it to go deep on backend architecture
+and event-driven design, not just to ship a CRUD app.
 
-## What I'm Using
+## Stack
 
-- [**Java (JDK 17)**](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html) - My main programming language
-- [**Spring Boot**](https://spring.io/projects/spring-boot) - Makes building web apps way easier
-- [**Spring Data JPA**](https://spring.io/projects/spring-data-jpa) - For talking to the database
-- [**Spring Security**](https://spring.io/projects/spring-security) - Handling login and permissions (still learning this!)
-- [**Hibernate**](https://hibernate.org/) - Maps my Java objects to database tables
-- [**MySQL**](https://www.mysql.com/) - Database where all the data lives
-- [**Maven**](https://maven.apache.org/) - Manages all my dependencies
-- [**Git**](https://git-scm.com/) - So I don't break everything when I experiment 
+- [**Java 17**](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+- [**Spring Boot 3.4**](https://spring.io/projects/spring-boot)
+- [**Spring Data JPA / Hibernate**](https://spring.io/projects/spring-data-jpa)
+- [**Spring Security**](https://spring.io/projects/spring-security) — authentication, with a custom Enum-based role check gating access
+- [**Apache Kafka**](https://kafka.apache.org/) — async events for follows and new song releases
+- [**Flyway**](https://flywaydb.org/) — versioned schema migrations
+- [**MySQL**](https://www.mysql.com/)
+- [**Maven**](https://maven.apache.org/)
 
-## About Me
+## Why I built this
 
-I actually studied electronics engineering first, which taught me how to think through problems systematically. But I fell in love with coding and decided to switch to software development. Now I'm building projects like this to grow my skills!
+The idea came out of a conversation with a producer friend of mine — I'm an artist myself, and we kept
+running into the same gap: no clean way for fans to follow the artists they care about and actually get
+notified when something new drops, without it living inside a general-purpose social platform that wasn't
+built for that relationship specifically. My friend had the product instinct for what artists and fans
+actually need; I'm the developer, so I took it on to build.
 
-## Why I Built This
+That's also why the architecture leans the way it does — a fan following an artist and an artist
+publishing a song are the two core actions the whole system is designed around, which is why they're the
+first two events in the Kafka pipeline rather than an afterthought bolted on later.
 
-I wanted to create something I'd actually use as a music lover, but the technical stuff I'm learning - like handling different user types and secure logins - applies to pretty much any app. It's been challenging but really fun to figure out.
+## What's actually built
 
-## What Works So Far
+- **Core domain** — Artist, Fan, Song entities with proper relationship mapping (`@ManyToMany` for
+  fan-follows-artist via a join table, `@ManyToOne`/`@OneToMany` for song-belongs-to-artist).
+- **Flyway migrations** — schema changes are versioned, reviewable SQL scripts, not Hibernate auto-DDL
+  guesswork.
+- **Kafka event pipeline** — `ArtistAddedSongEvent` and `FanFollowedArtistEvent` are published as
+  lightweight records (not entities, to avoid coupling the message schema to the DB schema and dodge
+  lazy-loading issues on serialization) and consumed asynchronously.
+- **Dedicated `kafka` package** — keeps all messaging concerns (producers, consumers, event records,
+  and the dead-letter error-handler config) in one place, separate from the domain/business logic in
+  `service`. A clean, self-contained unit to eventually fold into domain packages once the modular
+  monolith refactor happens.
+- **Dead-letter handling** — a message that fails processing gets retried twice, then routed to a
+  dead-letter topic instead of blocking every message behind it. `acks=all` and producer idempotence are
+  configured to avoid data loss and duplicate delivery.
+- **Custom Enum-based RBAC** — dashboard and endpoint access is gated by role today via a manual check
+  against a `Role` enum, sitting on top of Spring Security authentication. Migrating this to Spring
+  Security's `@PreAuthorize` / `hasRole()` is a near-term cleanup item — the access logic is correct, I
+  want the enforcement living in the framework layer instead of hand-rolled.
 
-✅ **Repositories** - My data layer is set up and working  
-✅ **Services** - Business logic is separated out  
-🔄 **User Controller** - Working on one controller that handles both artists and fans  
-🔄 **Security** - Still setting up Spring Security (it's tricky!)
+## Architecture
 
-## How I'm Building It
-
-I'm trying to follow good practices I've been learning:
-- Keeping my code organized in layers
-- Using feature branches so I don't mess up the main code
-- Writing clear commit messages
-- Learning as I go!
+Currently structured as a layered application (`controller` / `service` / `repository` / `model` /
+`kafka` packages). Laying the foundation for a **modular monolith** — regrouping by domain (`artist`,
+`fan`, `song`, each owning its own controller/service/repository/entity, with the relevant Kafka
+producer/consumer folded in) instead of by technical role. Layered was the right starting point to get
+the domain model right; modular boundaries matter more once the app has several interacting domains and
+event flows, which is where this project is now.
 
 ## Project Layout
-src/main/java/com/musicexchange/
-├── repository/ # Where I talk to the database
-├── service/ # Business rules live here
-├── model/ # My data structures
-└── controller/ # Handles web requests
 
+    src/main/java/com/musicexchange/
+    ├── controller/    # Handles web requests
+    ├── service/       # Business logic
+    ├── repository/    # Data access layer
+    ├── model/         # Entity classes (Artist, Fan, Song)
+    └── kafka/         # Producers, consumers, event records, and error-handling config
+                        # for the async event pipeline (song-added, artist-followed)
 
-## The Tricky Parts
+## In progress
 
-The hardest thing so far has been setting up one login system that works for both artists and fans but gives them different permissions. I'm learning a lot about:
-- How Spring Security works
-- Managing user roles
-- Building APIs that can grow
+- [ ] Modular monolith package restructuring
+- [ ] Docker containerisation
+- [ ] Expanding JUnit 5 / Mockito test coverage across the service layer
+- [ ] Migrating role checks to Spring Security `@PreAuthorize`
+- [ ] Wiring the Thymeleaf views to the backend (HTML's built, not yet connected)
 
-## What's Next
+## Git workflow
 
-I'm still working on:
-- [ ] Getting Spring Security properly configured  
-- [ ] Adding tests (I know I should as they are the most important part in software development lifecycle!)
-- [ ] Better error handling and validation
-- [ ] Connecting my Thymeleaf frontend (I already have HTML pages set up!) to the backend controllers
+Feature branches per unit of work (e.g. `kafka-events-and-error-handling`, `flyway-schema-migration`),
+merged into `main` via reviewed pull requests, branch deleted after merge. Solo project, so I review my
+own diffs before merging — same discipline I'd want from anyone else on a team.
 
-## My Development Approach
+## Background
 
-I've been practicing good Git workflow by using feature branches:
-- Created 'repositoriesUpdates' branch for all my repository layer improvements
-- Created 'servicesUpdates' branch for service layer enhancements
-- Created 'updatedControllers' branch for apis management
-- This lets me work on features without breaking the main codebase
-- I'm learning how to manage multiple branches and merge changes safely
-
----
-
-This project is my way of learning Spring Boot properly. Every time I hit a wall, I learn something new - and that's what I love about coding! Thanks for checking out my work 😊
+MEng in Electrical & Electronics Engineering before moving into software — the systematic-debugging habit
+from that background carries over more than I expected. This project is my main portfolio piece; happy to
+walk through any of the architectural decisions above in more detail.
