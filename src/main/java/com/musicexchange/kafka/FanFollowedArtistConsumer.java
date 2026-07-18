@@ -10,6 +10,6 @@ public class FanFollowedArtistConsumer {
 
     @KafkaListener(topics = "artist.followed", groupId = "music-exchange-group")
     public void consume (FanFollowedArtistEvent event){
-        log.info("Song added event received: {}", event);
+        log.info("Artist followed event received: {}", event);
     }
 }
