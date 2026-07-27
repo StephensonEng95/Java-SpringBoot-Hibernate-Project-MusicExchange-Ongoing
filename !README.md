@@ -29,7 +29,8 @@ first two events in the Kafka pipeline rather than an afterthought bolted on lat
 
 Screnshot below showing working fan dashboard page, with table entries and user controller
 
-![](https://github.com/user-attachments/assets/d90388c4-effd-4402-aa11-6191f18ef936)
+![](https://github.com/user-attachments/assets/86d3951c-0eda-4ec6-9f03-3fb9edcf8e8f)
+
 
 ## What's actually built
 
