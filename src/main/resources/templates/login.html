@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - MusicExchange</title>
-    <!-- Standard fonts and colors to match your Signup page -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -112,7 +111,6 @@
             font-weight: 600;
         }
 
-        /* Error message styles for when login fails */
         .error-message {
             background-color: #f8d7da;
             color: var(--error-red);
@@ -123,7 +121,6 @@
             border: 1px solid #f5c6cb;
         }
 
-        /* Style for the logout notification */
         .logout-message {
             background-color: #d1ecf1;
             color: #0c5460;
@@ -143,20 +140,19 @@
     <h2>Welcome Back</h2>
     <p>Sign in to continue to your dashboard</p>
 
-    <!-- This checks if 'error' was added to the Model in our UserController -->
-    <div th:if="${error}" class="error-message" th:text="${error}">
-        Invalid username or password.
+    <div th:if="${param.error != null or error != null}" class="error-message">
+        Invalid username or password. Please try again.
     </div>
 
-    <!-- This checks the URL for ?logout=true (sent by our logout method) -->
-    <div th:if="${param.logout}" class="logout-message">
+    <div th:if="${param.logout != null}" class="logout-message">
         You have been logged out.
     </div>
 
-    <!-- The form sends data to the /login POST method in our controller -->
     <form th:action="@{/login}" method="post">
+
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf}" />
+
         <div class="form-group">
-            <!-- The 'name' attribute must match the @RequestParam in the Java code -->
             <input type="text" id="username" name="username" placeholder="Username" required>
         </div>
 

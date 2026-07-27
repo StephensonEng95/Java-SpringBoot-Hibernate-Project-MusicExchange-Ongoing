@@ -5,7 +5,7 @@
     <title>Join MusicExchange</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* This CSS handles the layout and makes the form look like a modern card */
+        /* Junior comment: Layout styling for form card and validation error messages */
         body {
             background-color: #f4f7f6;
             font-family: 'Inter', sans-serif;
@@ -61,7 +61,6 @@
             cursor: pointer;
             transition: 0.2s;
         }
-        /* This changes the background color when you select Artist or Fan */
         .role-option:has(input:checked) {
             border-color: #007bff;
             background-color: #f0f7ff;
@@ -85,9 +84,9 @@
         .footer-link { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
         .footer-link a { color: #007bff; text-decoration: none; font-weight: 600; }
 
-        /* Style for the error message that pops up if signup fails */
         .alert { padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; text-align: center; }
         .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .field-error { color: #dc3545; font-size: 12px; margin-top: 4px; display: block; }
     </style>
 </head>
 <body>
@@ -97,17 +96,16 @@
     <h2>Create Account</h2>
     <p class="subtitle">Join our community of music lovers</p>
 
-    <!-- This error alert only shows up if the Controller adds 'error' to the model -->
+    <!-- Junior comment: Displays global exception messages passed via flash attributes (e.g. duplicate user) -->
     <div th:if="${error}" class="alert alert-error" th:text="${error}">
         Something went wrong!
     </div>
 
-    <!-- The form sends a POST request to the /signup URL in our UserController -->
-    <form th:action="@{/signup}" method="post">
+    <!-- Junior comment: Opening form tag added here with target action and backing object binding -->
+    <form th:action="@{/signup}" th:object="${requestDto}" method="post">
 
         <label>I am a...</label>
         <div class="role-selector">
-            <!-- The 'name="role"' must match our UserRole enum values: ARTIST or FAN -->
             <div class="role-option">
                 <input type="radio" id="artist" name="role" value="ARTIST" required>
                 <label for="artist" style="display:inline; cursor:pointer;">Artist</label>
@@ -118,20 +116,22 @@
             </div>
         </div>
 
-        <!-- Each 'name' attribute here matches a @RequestParam in our Controller -->
         <div class="form-group">
             <label for="username">Username</label>
-            <input type="text" id="username" name="username" placeholder="johndoe123" required>
+            <input type="text" id="username" th:field="*{username}" placeholder="johndoe123" required />
+            <span th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="field-error"></span>
         </div>
 
         <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="name@example.com" required>
+            <input type="email" id="email" th:field="*{email}" placeholder="name@example.com" required />
+            <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="field-error"></span>
         </div>
 
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="••••••••" required>
+            <input type="password" id="password" th:field="*{password}" placeholder="••••••••" required />
+            <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="field-error"></span>
         </div>
 
         <button type="submit">Create Account</button>
