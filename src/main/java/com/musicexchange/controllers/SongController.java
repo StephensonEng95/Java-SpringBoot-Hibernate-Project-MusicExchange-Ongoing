@@ -27,7 +27,6 @@ public class SongController {
         return "add-song";
     }
 
-    // Junior Comment: Bind directly to SongRequestDto via @ModelAttribute and handle validation errors gracefully
     @PostMapping("/add")
     public String createSong(@Valid @ModelAttribute("songRequest") SongRequestDto request,
                              BindingResult bindingResult,
