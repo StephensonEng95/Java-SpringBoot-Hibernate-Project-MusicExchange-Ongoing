@@ -3,8 +3,7 @@ package com.musicexchange.models;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "songs")
@@ -16,27 +15,24 @@ public class Song {
     @Column(name = "song_id")
     private Long songId;
 
-    // Field names match the database columns for consistency
     private String songTitle;
     private String genre;
-    private int duration;
-
-    @Column(name = "release_date")
-    private LocalDate releaseDate;
-    @Column(name = "release_time")
-    private LocalTime releaseTime;
+    private Long duration;
+    private String coverArt;
+    @Column(name = "released_At")
+    private LocalDateTime releasedAt;
 
 
     // Mapping the relationship back to the Artist table
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "artistid")
+    @ManyToOne
+    @JoinColumn(name = "artist_id")
     private Artist artist;
 
     @PrePersist()
     public void onCreate(){
 
-        this.releaseDate = LocalDate.now();
-        this.releaseTime = LocalTime.now();
+        this.releasedAt = LocalDateTime.now();
+
     }
 
 }
