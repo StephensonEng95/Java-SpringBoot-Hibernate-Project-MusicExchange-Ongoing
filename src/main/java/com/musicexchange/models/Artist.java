@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -16,7 +14,7 @@ public class Artist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "artistid") // Primary key name from original DB
+    @Column(name = "artist_id") // Primary key name from original DB
     private Long artistId;
     @Column(name = "username")
     private String username;
@@ -25,24 +23,34 @@ public class Artist {
     @Column(name = "password", nullable = false, length = 255)
     @ToString.Exclude
     private String password;
-    @Column(name = "active")
+    @Column(name = "is_active")
     private boolean isActive;
-    @Column(name = "creation_date")
-    private LocalDate creationDate;
-    @Column(name = "creation_time")
-    private LocalTime creationTime;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @Column(name = "profile_picture")
     private String profilePicture;
 
     // Establishing relationship so we can pull songs for the dashboard
-    @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Song> songs = new ArrayList<>();
+    @OneToMany(mappedBy = "artist")
+    private List<Song> songs;
 
-    @PrePersist
+    @ManyToMany(mappedBy = "artist")
+    private List<Fan> fans;
+    @PrePersist()
     public void onCreate(){
         this.isActive = true;
-        this.profilePicture = "default-profile.png";
-        this.creationDate = LocalDate.now();
-        this.creationTime = LocalTime.now();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt= LocalDateTime.now();
     }
+
+    @PreUpdate()
+    public void onUpdate(){
+        this.updatedAt = LocalDateTime.now();
+
+    }
+
 }

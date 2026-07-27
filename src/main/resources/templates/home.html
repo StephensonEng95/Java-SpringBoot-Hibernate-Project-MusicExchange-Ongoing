@@ -75,7 +75,6 @@
 <div class="hero-card">
     <div class="logo">MusicExchange</div>
 
-    <!-- This greeting only shows up if someone is already logged in -->
     <p th:if="${session.user != null}">
         Welcome back, <b th:text="${session.user.username}">Artist</b>! Ready to manage your music?
     </p>

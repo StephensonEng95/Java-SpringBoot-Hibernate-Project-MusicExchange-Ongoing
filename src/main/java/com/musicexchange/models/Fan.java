@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "fans")
@@ -25,21 +25,38 @@ public class Fan {
     @ToString.Exclude
     private String password;
 
-    @Column(name = "active")
+    @Column(name = "is_active")
     private boolean isActive;
-    @Column(name = "creation_date")
-    private LocalDate creationDate;
-    @Column(name = "creation_time")
-    private LocalTime creationTime;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "artistid")
-    private Artist artist;
+    @Column(name = "created_At")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "profile_picture")
+    private String profilePicture;
+
+
+    @ManyToMany
+    @JoinTable(
+            name ="artists_fans",
+            joinColumns = @JoinColumn(name = "fan_id"),
+            inverseJoinColumns = @JoinColumn(name = "artist_id")
+    )
+    private List<Artist> artist;
 
     @PrePersist()
     public void onCreate(){
         this.isActive = true;
-        this.creationDate = LocalDate.now();
-        this.creationTime = LocalTime.now();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt= LocalDateTime.now();
     }
+
+    @PreUpdate()
+    public void onUpdate(){
+        this.updatedAt = LocalDateTime.now();
+
+    }
+
 }

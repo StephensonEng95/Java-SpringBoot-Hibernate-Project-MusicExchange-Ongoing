@@ -11,7 +11,6 @@
         body { background-color: #f8f9fa; }
         .card { border: none; border-radius: 12px; }
 
-        /* Profile Image Styles */
         .profile-wrapper {
             position: relative;
             width: 140px;
@@ -49,18 +48,63 @@
         }
         #imageInput { display: none; }
 
-        /* Table Styles */
         .table-card { overflow: hidden; }
         .stat-card { border-left: 5px solid #0d6efd; }
+
+        .nav-avatar {
+            width: 32px;
+            height: 32px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm py-2">
     <div class="container">
         <a class="navbar-brand fw-bold" href="#">MUSIC EXCHANGE</a>
-        <div class="ms-auto">
-            <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm">Logout</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User" class="nav-avatar">
+                        <span th:text="${artist.username}">Account</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="accountDropdown">
+                        <li>
+                            <div class="dropdown-header">
+                                <strong th:text="${artist.username}">Artist Name</strong>
+                                <div class="small text-muted" th:text="${artist.email}">email@example.com</div>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="#">
+                                <i class="bi bi-person-gear"></i> Account Settings
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="/song/add">
+                                <i class="bi bi-music-note-beamed"></i> Add New Song
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="m-0">
+                                <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2">
+                                    <i class="bi bi-box-arrow-right"></i> Log Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
         </div>
     </div>
 </nav>
@@ -77,7 +121,7 @@
                     <i class="bi bi-camera-fill"></i>
                 </label>
 
-                <form th:action="@{/artist/upload-image}" method="post" enctype="multipart/form-data" id="imageForm">
+                <form th:action="@{/user/upload-image}" method="post" enctype="multipart/form-data" id="imageForm">
                     <input type="file" id="imageInput" name="profileImage" accept="image/*" onchange="previewAndSubmit(this)">
                 </form>
             </div>
@@ -85,8 +129,8 @@
         <div class="col-md-9 text-center text-md-start mt-3 mt-md-0">
             <h1 class="display-5 fw-bold mb-1">Hey, <span th:text="${artist.username}">Artist</span>!</h1>
             <p class="lead text-muted" th:text="${artist.email}">email@example.com</p>
-            <span th:class="${artist.active} ? 'badge bg-success' : 'badge bg-secondary'"
-                  th:text="${artist.active ? 'Verified Artist' : 'Pending Verification'}">Status</span>
+            <span th:class="${artist.active != null and artist.active ? 'badge bg-success' : 'badge bg-secondary'}"
+                  th:text="${artist.active != null and artist.active ? 'Verified Artist' : 'Pending Verification'}">Status</span>
         </div>
     </div>
 
@@ -101,7 +145,7 @@
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
                         <h6 class="text-muted text-uppercase fw-bold small">Track Library</h6>
-                        <h2 class="mb-0 fw-bold" th:text="${artist.songs.size()}">0</h2>
+                        <h2 class="mb-0 fw-bold" th:text="${artist.songs != null ? artist.songs.size() : 0}">0</h2>
                     </div>
                     <i class="bi bi-music-note-list fs-1 text-primary"></i>
                 </div>
@@ -123,7 +167,7 @@
     <div class="card shadow-sm table-card">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-bold">Latest Songs</h5>
-            <button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Add New</button>
+            <a href="/song/add" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i> Add New</a>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -142,7 +186,7 @@
                         <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
                     </td>
                 </tr>
-                <tr th:if="${artist.songs.empty}">
+                <tr th:if="${artist.songs == null or artist.songs.empty}">
                     <td colspan="3" class="text-center py-5 text-muted">
                         <i class="bi bi-cloud-slash display-4"></i>
                         <p class="mt-2">No tracks found. Upload your first masterpiece!</p>
@@ -162,10 +206,7 @@
                 document.getElementById('profileDisplay').src = e.target.result;
             }
             reader.readAsDataURL(input.files[0]);
-
-            // In a real app, you might want to auto-submit the form:
-            // document.getElementById('imageForm').submit();
-            alert("Image selected! Form is ready to submit to /artist/upload-image");
+            document.getElementById('imageForm').submit();
         }
     }
 </script>

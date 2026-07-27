@@ -1,7 +1,10 @@
 package com.musicexchange.controllers;
 
-import com.musicexchange.models.Song;
+import com.musicexchange.dto.SongRequestDto;
+import com.musicexchange.dto.SongResponseDto;
 import com.musicexchange.service.SongService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,33 +16,44 @@ public class SongRestApi {
 
     private final SongService songService;
 
-    //constructor injectionn followinf dependency inversion of SOLID principles
     public SongRestApi(SongService songService) {
         this.songService = songService;
     }
 
-    // Returns all songs in the database as a JSON list
-    @GetMapping
-    public List<Song> getAllSongs() {
-        return songService.getAllSongs();
+    @PostMapping
+    public ResponseEntity<SongResponseDto> addSong(@Valid @RequestBody SongRequestDto request) {
+        SongResponseDto createdSong = songService.addSong(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdSong);
     }
 
-    // Fetches songs for a specific artist using the artistId
-    @GetMapping("/artist/{artistId}")
-    public ResponseEntity<List<Song>> getSongsByArtist(@PathVariable Long artistId) {
-        List<Song> songs = songService.getSongsByArtist(artistId);
+    @GetMapping
+    public ResponseEntity<List<SongResponseDto>> getAllSongs() {
+        List<SongResponseDto> songs = songService.getAllSongs();
         return ResponseEntity.ok(songs);
     }
 
-    // Endpoint to delete a song based on the unique song_id primary key
-    @DeleteMapping("/{song_id}")
-    public ResponseEntity<String> deleteSong(@PathVariable Long songId) {
-        try {
+    @GetMapping("/{songId}")
+    public ResponseEntity<SongResponseDto> getSongById(@PathVariable Long songId) {
+        SongResponseDto song = songService.getSongById(songId);
+        return ResponseEntity.ok(song);
+    }
 
-            songService.deleteSong(songId);
-            return ResponseEntity.ok("Song deleted successfully");
-        } catch (Exception e) {
-            return ResponseEntity.status(404).body("Error: " + e.getMessage());
-        }
+    @GetMapping("/artist/{artistId}")
+    public ResponseEntity<List<SongResponseDto>> getSongsByArtist(@PathVariable Long artistId) {
+        List<SongResponseDto> songs = songService.getSongsByArtist(artistId);
+        return ResponseEntity.ok(songs);
+    }
+
+    @PutMapping("/{songId}")
+    public ResponseEntity<SongResponseDto> updateSong(@PathVariable Long songId,
+                                                      @Valid @RequestBody SongRequestDto request) {
+        SongResponseDto updatedSong = songService.updateSongByIdAndTitle(songId, request);
+        return ResponseEntity.ok(updatedSong);
+    }
+
+    @DeleteMapping("/{songId}")
+    public ResponseEntity<Void> deleteSong(@PathVariable Long songId) {
+        songService.deleteSong(songId);
+        return ResponseEntity.noContent().build();
     }
 }
