@@ -1,50 +1,47 @@
 package com.musicexchange.controllers;
 
-import com.musicexchange.models.Song;
+import com.musicexchange.dto.SongRequestDto;
+import com.musicexchange.dto.SongResponseDto;
+import com.musicexchange.exceptions.DuplicateResourceException;
+import com.musicexchange.exceptions.ResourceNotFoundException;
 import com.musicexchange.service.SongService;
-import org.springframework.format.annotation.DateTimeFormat;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.util.List;
 
 @Controller
 @RequestMapping("/song")
+@RequiredArgsConstructor
 public class SongController {
 
     private final SongService songService;
 
-    public SongController(SongService songService) {
-        this.songService = songService;
-    }
-
     @GetMapping("/add")
-    public String showAddSongForm() {
+    public String showAddSongForm(Model model) {
+        model.addAttribute("songRequest", new SongRequestDto());
         return "add-song";
     }
 
-    // Processing the song upload and connecting it to the artist ID
+    // Junior Comment: Bind directly to SongRequestDto via @ModelAttribute and handle validation errors gracefully
     @PostMapping("/add")
-    public String createSong(@RequestParam String songTitle,
-                             @RequestParam String genre,
-                             @RequestParam int duration,
-                             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate release_date,
-                             @RequestParam Long artistId,
+    public String createSong(@Valid @ModelAttribute("songRequest") SongRequestDto request,
+                             BindingResult bindingResult,
                              Model model) {
+        if (bindingResult.hasErrors()) {
+            return "add-song";
+        }
+
         try {
-            Song song = new Song();
-
-            // Setting values using the names generated from the entity fields
-            song.setSongTitle(songTitle);
-            song.setGenre(genre);
-            song.setDuration(duration);
-            song.setReleaseDate(release_date);
-
-            songService.addSongToArtist(artistId, song);
-
+            songService.addSong(request);
             return "redirect:/song/all";
-
+        } catch (ResourceNotFoundException | DuplicateResourceException e) {
+            model.addAttribute("error", e.getMessage());
+            return "add-song";
         } catch (Exception e) {
             model.addAttribute("error", "Error saving song: " + e.getMessage());
             return "add-song";
@@ -53,14 +50,15 @@ public class SongController {
 
     @GetMapping("/all")
     public String getAllSongs(Model model) {
-        model.addAttribute("songs", songService.getAllSongs());
+        List<SongResponseDto> songs = songService.getAllSongs();
+        model.addAttribute("songs", songs);
         return "songs-list";
     }
 
-    // Pulling the song list for a specific artist
     @GetMapping("/artist/{artistId}")
     public String getSongsByArtist(@PathVariable Long artistId, Model model) {
-        model.addAttribute("songs", songService.getSongsByArtist(artistId));
+        List<SongResponseDto> songs = songService.getSongsByArtist(artistId);
+        model.addAttribute("songs", songs);
         return "songs-list";
     }
 }

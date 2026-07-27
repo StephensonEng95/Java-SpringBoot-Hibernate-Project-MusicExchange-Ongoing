@@ -1,69 +1,67 @@
 package com.musicexchange.controllers;
 
-import com.musicexchange.models.Artist;
+import com.musicexchange.dto.ArtistRequestDto;
+import com.musicexchange.dto.ArtistResponseDto;
+import com.musicexchange.dto.FanResponseDto;
+import com.musicexchange.dto.SuggestedArtistsResponseDto;
+import com.musicexchange.models.UserRole;
 import com.musicexchange.service.ArtistService;
-import lombok.extern.slf4j.Slf4j;
+import com.musicexchange.service.FanService;
+import com.musicexchange.service.SuggestedArtistsService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
 
-@Slf4j
+
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/user/v1")
+@RequiredArgsConstructor
 public class UserRestApi {
 
     private final ArtistService artistService;
-
-    // Use constructor injection to get our service
-    public UserRestApi(ArtistService artistService) {
-        this.artistService = artistService;
+    private final FanService fanService;
+    private final SuggestedArtistsService suggestedArtistsService;
+    @GetMapping("/artist/{artistId}")
+    public ResponseEntity<ArtistResponseDto> getArtist(@PathVariable("artistId") Long id) {
+        ArtistResponseDto artist = artistService.getArtistById(id);
+        return ResponseEntity.ok(artist);
     }
 
-    @GetMapping("/artist/{id}")
-    public ResponseEntity<Artist> getArtist(@PathVariable Long id) {
-        // Try to find the artist and return 404 if they don't exist
-        return artistService.getArtistById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> {
-                    log.debug("Artist with ID {} not found", id);
-                    return ResponseEntity.notFound().build();
-                });
+
+    @GetMapping("/fan/{fanId}")
+    public ResponseEntity<FanResponseDto> getFan(@PathVariable("fanId") Long id) {
+        FanResponseDto fan = fanService.getFanById(id);
+        return ResponseEntity.ok(fan);
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam(required = false) String username, @RequestParam(required = false) String password) {
-        // 1. Calls service to check credentials
-        Optional<Artist> artist = artistService.authenticateArtist(username, password);
-
-        if (artist.isPresent()) {
-            log.info("API Login successful for: {}", username);
-            // Returns the Artist object with a 200 OK status
-            return ResponseEntity.ok(artist.get());
-        } else {
-            log.warn("API Login failed for user: {}", username);
-            //Returns a simple String message with a 401 Unauthorized status
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid username or password.");
-        }
+    @GetMapping("fan/current-artists")
+    public ResponseEntity<List<ArtistResponseDto>> getAllArtists(){
+        List<ArtistResponseDto> artists = artistService.getAllArtists();
+        return ResponseEntity.ok(artists);
     }
 
+    //this class is mainly for testing artists populated on fan dashboard
+    @GetMapping("fan/suggested-artists")
+    public ResponseEntity<List<SuggestedArtistsResponseDto>> getAllSuggestedArtists(){
+        List<SuggestedArtistsResponseDto> artists = suggestedArtistsService.getAllSuggestedArtists();
+        return ResponseEntity.ok(artists);
+    }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody Artist artist) {
-        try {
-            // Send the raw data to the service so it can handle hashing the password
-            artistService.createArtist(artist.getUsername(), artist.getEmail(), artist.getPassword());
-
-            log.info("New artist registered via API: {}", artist.getUsername());
+    public ResponseEntity<String> signup(@Valid @RequestBody ArtistRequestDto requestDto,
+                                         @RequestParam UserRole role) {
+        if (role == UserRole.ARTIST) {
+            artistService.createArtist(requestDto);
             return ResponseEntity.ok("Artist registered successfully.");
-        } catch (Exception e) {
-            // If the service throws an error (like a duplicate email), log it and return 400
-            log.error("API Signup error: {}", e.getMessage());
-            return ResponseEntity.badRequest().body("Signup failed: " + e.getMessage());
+        } else if (role == UserRole.FAN) {
+            fanService.createFan(requestDto);
+            return ResponseEntity.ok("Fan registered successfully.");
         }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user role specified.");
     }
-
-
 }
