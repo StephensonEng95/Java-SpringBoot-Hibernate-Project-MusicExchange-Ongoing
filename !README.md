@@ -15,7 +15,7 @@ and event-driven design, not just to ship a CRUD app.
 - [**MySQL**](https://www.mysql.com/)
 - [**Maven**](https://maven.apache.org/)
 
-## Why I built this
+## Why I built this 
 
 The idea came out of a conversation with a producer friend of mine — I'm an artist myself, and we kept
 running into the same gap: no clean way for fans to follow the artists they care about and actually get
