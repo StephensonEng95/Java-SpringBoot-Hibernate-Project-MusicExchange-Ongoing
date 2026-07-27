@@ -2,7 +2,7 @@
 
 Hi, i am Stephenson, a Backend-focused Engineer leaning to Full Stack. I build scalable and maintanabl Spring Boot applications following clean architecture, spring design patterns and standard software development guidelines. Currently building a Spring Web app modeling a real artist/fan music platform — artists publish
 songs, fans follow artists and get notified when they do. I built it to go deep on backend architecture
-and event-driven design, not just to ship a CRUD app.
+and event-driven design, while also learning Full Stack in depth, not just to ship a CRUD app.
 
 ## Stack
 
