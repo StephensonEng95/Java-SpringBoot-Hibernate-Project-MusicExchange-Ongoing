@@ -34,7 +34,6 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
-            // Updated to findByUsername based on your previous message
             var artistOpt = artistRepository.findByUsername(username);
             if (artistOpt.isPresent()) {
                 var artist = artistOpt.get();
