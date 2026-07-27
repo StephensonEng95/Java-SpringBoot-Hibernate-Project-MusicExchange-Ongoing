@@ -1,96 +1,90 @@
 package com.musicexchange.service;
 
+import com.musicexchange.dto.ArtistRequestDto;
+import com.musicexchange.dto.ArtistResponseDto;
+import com.musicexchange.exceptions.DuplicateResourceException;
+import com.musicexchange.exceptions.ResourceNotFoundException;
 import com.musicexchange.models.Artist;
 import com.musicexchange.repository.ArtistRepository;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Optional;
+
+import java.util.List;
 
 @Service
-@Transactional
-@Slf4j
+@RequiredArgsConstructor
 public class ArtistService {
 
     private final ArtistRepository artistRepo;
     private final PasswordEncoder passwordEncoder;
 
-    public ArtistService(ArtistRepository artistRepo, PasswordEncoder passwordEncoder) {
-        this.artistRepo = artistRepo;
-        this.passwordEncoder = passwordEncoder;
+
+    @Transactional(readOnly = true)
+    public List<ArtistResponseDto> getAllArtists() {
+        return artistRepo.findAll()
+                .stream()
+                .map(this::mapToResponseDto)
+                .toList();
     }
 
-    public Optional<Artist> getArtistById(Long artistId) {
-        return artistRepo.findById(artistId);
+    @Transactional(readOnly = true)
+    public ArtistResponseDto getArtistById(Long artistId) {
+        Artist artist = artistRepo.findById(artistId)
+                .orElseThrow(() -> new ResourceNotFoundException("Artist not found with ID: " + artistId));
+        return mapToResponseDto(artist);
     }
 
-    public void createArtist(String username, String email, String password) {
-        if (artistRepo.existsByUsername(username)) {
-            throw new RuntimeException("Artist username already exists.");
+    public ArtistResponseDto createArtist(ArtistRequestDto request) {
+        if (artistRepo.existsByUsername(request.getUsername())) {
+            throw new DuplicateResourceException("Artist username already exists: " + request.getUsername());
         }
-        if (artistRepo.existsByEmail(email)) {
-            throw new RuntimeException("Artist email already exists.");
+        if (artistRepo.existsByEmail(request.getEmail())) {
+            throw new DuplicateResourceException("Artist email already exists: " + request.getEmail());
         }
 
         Artist artist = new Artist();
-        artist.setUsername(username);
+        artist.setUsername(request.getUsername());
+        artist.setEmail(request.getEmail());
+        artist.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        Artist savedArtist = artistRepo.save(artist);
+        return mapToResponseDto(savedArtist);
+    }
+
+    public ArtistResponseDto updateArtistByEmail(Long artistId, String email) {
+        Artist artist = artistRepo.findById(artistId)
+                .orElseThrow(() -> new ResourceNotFoundException("Artist not found with ID: " + artistId));
+
         artist.setEmail(email);
+        Artist updatedArtist = artistRepo.save(artist);
+        return mapToResponseDto(updatedArtist);
+    }
 
-        // Encodes the raw password into a BCrypt hash before saving
-        artist.setPassword(passwordEncoder.encode(password));
+    public void updateArtistByPassword(Long artistId, String rawPassword) {
+        Artist artist = artistRepo.findById(artistId)
+                .orElseThrow(() -> new ResourceNotFoundException("Artist not found with ID: " + artistId));
 
+        artist.setPassword(passwordEncoder.encode(rawPassword));
         artistRepo.save(artist);
-        log.info("Artist created successfully with ID: {} and username : {}",artist.getArtistId(), artist.getUsername());
     }
 
-    /**
-     * This is the logic used by the UserController for login.
-     * It finds the user by username first, then uses the encoder
-     * to verify if the raw password matches the stored hash.
-     */
-    public Optional<Artist> authenticateArtist(String username, String password) {
-        log.debug("Attempting authentication for artist: {}", username);
-
-        return artistRepo.findByUsername(username)
-                .filter(artist -> {
-                    boolean matches = passwordEncoder.matches(password, artist.getPassword());
-
-                    if (!matches) {
-
-                        log.warn("Authentication failed: Invalid password for artist '{}'", username);
-                    }
-
-                    return matches;
-                });
-
+    public void deleteArtistById(Long artistId) {
+        if (!artistRepo.existsById(artistId)) {
+            throw new ResourceNotFoundException("Artist not found with ID: " + artistId);
+        }
+        artistRepo.deleteById(artistId);
     }
 
-    public void updateArtistEmail(Long artistId, String email) {
-        artistRepo.findById(artistId).ifPresent(artist -> {
-            artist.setEmail(email);
-            artistRepo.save(artist);
-        });
-        log.info("Email update successful for :{}",artistId);
-    }
-
-    public void updateArtistPassword(Long artistId, String password) {
-        artistRepo.findById(artistId).ifPresent(artist -> {
-            // Re-hashes the new password during an update
-            artist.setPassword(passwordEncoder.encode(password));
-            artistRepo.save(artist);
-        });
-        log.info("Password update successful for :{}",artistId);
-
-    }
-
-    public void deleteByArtistId(Long artistId){
-        artistRepo.findById(artistId)
-                .ifPresentOrElse(
-                        artistRepo::delete,
-                        () -> { throw new RuntimeException("Artist not found for ID: " + artistId); }
-                );
-        log.info("Artist deletion successful for :{}",artistId);
-
+    private ArtistResponseDto mapToResponseDto(Artist artist) {
+        return new ArtistResponseDto(
+                artist.getArtistId(),
+                artist.getUsername(),
+                artist.getEmail(),
+                artist.getProfilePicture(),
+                artist.getCreatedAt(),
+                artist.getUpdatedAt()
+        );
     }
 }
