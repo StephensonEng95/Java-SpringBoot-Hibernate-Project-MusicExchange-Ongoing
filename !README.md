@@ -1,6 +1,6 @@
 # Artist & Fan Management System 🎤
 
-A backend-focused Spring Boot application modeling a real artist/fan music platform — artists publish
+Hi, i am Stephenson, a Backend-focused Engineer leaning to Full Stack. I build scalable and maintanabl Spring Boot applications following clean architecture, spring design patterns and standard software development guidelines. Currently building a Spring Web app modeling a real artist/fan music platform — artists publish
 songs, fans follow artists and get notified when they do. I built it to go deep on backend architecture
 and event-driven design, not just to ship a CRUD app.
 
@@ -26,6 +26,10 @@ actually need; I'm the developer, so I took it on to build.
 That's also why the architecture leans the way it does — a fan following an artist and an artist
 publishing a song are the two core actions the whole system is designed around, which is why they're the
 first two events in the Kafka pipeline rather than an afterthought bolted on later.
+
+Screnshot below showing working fan dashboard page, with table entries and user controller
+
+![](https://github.com/user-attachments/assets/d90388c4-effd-4402-aa11-6191f18ef936)
 
 ## What's actually built
 
@@ -59,21 +63,34 @@ event flows, which is where this project is now.
 
 ## Project Layout
 
+    ## Project Layout
+     ''' text
     src/main/java/com/musicexchange/
     ├── controller/    # Handles web requests
     ├── service/       # Business logic
     ├── repository/    # Data access layer
     ├── model/         # Entity classes (Artist, Fan, Song)
+    ├── dto/           # Data Transfer Objects for API requests and responses
+    ├── config/        # Application configurations (Security, Kafka, etc.)
+    ├── exception/     # Custom exception handlers and error definitions
     └── kafka/         # Producers, consumers, event records, and error-handling config
-                        # for the async event pipeline (song-added, artist-followed)
+                       # for the async event pipeline (song-added, artist-followed)
+
+    src/main/resources/
+    ├── db/migration/  # Flyway versioned SQL schema migration scripts
+    └── templates/     # Thymeleaf HTML view templates
+
+## Milesstones
+- [ ] Migrated role checks to Spring Security `@PreAuthorize`
+- [ ] Wired the Thymeleaf views to the backend (HTML's build)
+- [ ] Added following logic
 
 ## In progress
 
 - [ ] Modular monolith package restructuring
 - [ ] Docker containerisation
 - [ ] Expanding JUnit 5 / Mockito test coverage across the service layer
-- [ ] Migrating role checks to Spring Security `@PreAuthorize`
-- [ ] Wiring the Thymeleaf views to the backend (HTML's built, not yet connected)
+
 
 ## Git workflow
 
