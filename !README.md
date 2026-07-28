@@ -31,6 +31,11 @@ first two events in the Kafka pipeline rather than an afterthought bolted on lat
 
 ![](https://github.com/user-attachments/assets/86d3951c-0eda-4ec6-9f03-3fb9edcf8e8f)
 
+## Fan registration (Api testing) with postman successfull 200 status ok
+
+![](https://github.com/user-attachments/assets/cd0751bf-d633-40a7-ae8c-688340f3e195)
+
+
 ## ArtistService unit tests (JUnit 5 + Mockito) — success path and duplicate-username/email validation, all passing.
 
 ![](https://github.com/user-attachments/assets/6e2fdc1c-8368-4667-99f9-9f5f58de49f8)
