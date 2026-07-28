@@ -27,10 +27,13 @@ That's also why the architecture leans the way it does — a fan following an ar
 publishing a song are the two core actions the whole system is designed around, which is why they're the
 first two events in the Kafka pipeline rather than an afterthought bolted on later.
 
-Screnshot below showing working fan dashboard page, with table entries and user controller
+## Screnshot below showing working fan dashboard page, with table entries and user controller
 
 ![](https://github.com/user-attachments/assets/86d3951c-0eda-4ec6-9f03-3fb9edcf8e8f)
 
+## ArtistService unit tests (JUnit 5 + Mockito) — success path and duplicate-username/email validation, all passing.
+
+![](https://github.com/user-attachments/assets/6e2fdc1c-8368-4667-99f9-9f5f58de49f8)
 
 ## What's actually built
 
