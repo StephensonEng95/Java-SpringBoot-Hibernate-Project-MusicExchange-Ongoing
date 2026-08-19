@@ -1,14 +1,18 @@
 package com.musicexchange.service;
 
+import com.musicexchange.dto.ArtistRequestDto;
 import com.musicexchange.models.Artist;
+import com.musicexchange.models.UserRole;
 import com.musicexchange.repository.ArtistRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -18,23 +22,30 @@ class ArtistServiceTest {
     @Mock
     private ArtistRepository artistRepo;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private ArtistService artistService;
-
+    UserRole role= UserRole.ARTIST;
     @Test
     void createArtist_Success() {
-        // Data arrange
+        // Arrange
         String user = "SteveTest";
         String email = "steve@test.com";
         String pass = "rawPassword";
-
         when(artistRepo.existsByUsername(user)).thenReturn(false);
         when(artistRepo.existsByEmail(email)).thenReturn(false);
+        when(passwordEncoder.encode(pass)).thenReturn("hashedPassword123");
 
-        // Act - Calling the void method
-        artistService.createArtist(user, email, pass);
+        when(artistRepo.save(any(Artist.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Assert - Verifying that save was actually called since there is no return value
+        ArtistRequestDto artistRequestDto = new ArtistRequestDto(user, email, pass, role);
+
+        // Act
+        artistService.createArtist(artistRequestDto);
+
+        // Assert
         verify(artistRepo, times(1)).save(any(Artist.class));
     }
 
@@ -42,15 +53,15 @@ class ArtistServiceTest {
     void createArtist_ThrowsException_WhenUsernameExists() {
         // Arrange
         String user = "ExistingUser";
+
         when(artistRepo.existsByUsername(user)).thenReturn(true);
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            artistService.createArtist(user, "test1@test1.com", "pass");
+            artistService.createArtist(new ArtistRequestDto(user, "test1@test1.com", "dummypass123.",role));
         });
 
-        // Verifying the message matches the "Artist username already exists." from your service
-        assertEquals("Artist username already exists.", exception.getMessage());
+        assertEquals("Artist username already exists: " + user, exception.getMessage());
         verify(artistRepo, never()).save(any(Artist.class));
     }
 
@@ -65,11 +76,10 @@ class ArtistServiceTest {
 
         // Act & Assert
         RuntimeException runtimeException = assertThrows(RuntimeException.class, () -> {
-            artistService.createArtist(user, emailExists, "pass124");
+            artistService.createArtist(new ArtistRequestDto(user, emailExists, "pass124", role));
         });
 
-        // Verifying the message matches the "Artist email already exists." from your service
-        assertEquals("Artist email already exists.", runtimeException.getMessage());
+        assertEquals("Artist email already exists: " + emailExists, runtimeException.getMessage());
         verify(artistRepo, never()).save(any(Artist.class));
     }
 }

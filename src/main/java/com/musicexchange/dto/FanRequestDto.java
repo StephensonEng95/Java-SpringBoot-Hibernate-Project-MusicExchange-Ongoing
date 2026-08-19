@@ -1,7 +1,9 @@
 package com.musicexchange.dto;
 
+import com.musicexchange.models.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,4 +26,7 @@ public class FanRequestDto {
     @NotBlank(message = "password is required")
     @Size(min = 8, message = "password should be minimum 8 chars long")
     private String password;
+
+    @NotNull(message = "role should be specified")
+    private UserRole role;
 }

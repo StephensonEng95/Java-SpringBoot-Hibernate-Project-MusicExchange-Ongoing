@@ -1,20 +1,18 @@
 package com.musicexchange.config;
 
-import com.musicexchange.repository.ArtistRepository;
-import com.musicexchange.repository.FanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -23,8 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final MyAuthenticationSuccessHandler successHandler;
-    private final ArtistRepository artistRepository;
-    private final FanRepository fanRepository;
+    private final JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -32,30 +29,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return username -> {
-            var artistOpt = artistRepository.findByUsername(username);
-            if (artistOpt.isPresent()) {
-                var artist = artistOpt.get();
-                return User.builder()
-                        .username(artist.getUsername())
-                        .password(artist.getPassword())
-                        .roles("ARTIST")
-                        .build();
-            }
-
-            var fanOpt = fanRepository.findByUsername(username);
-            if (fanOpt.isPresent()) {
-                var fan = fanOpt.get();
-                return User.builder()
-                        .username(fan.getUsername())
-                        .password(fan.getPassword())
-                        .roles("FAN")
-                        .build();
-            }
-
-            throw new UsernameNotFoundException("User not found: " + username);
-        };
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
@@ -63,15 +38,18 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/signup", "/api/**").permitAll()
+                        .requestMatchers("/", "/login", "/signup").permitAll()
+                       // .requestMatchers("/artist-dashboard", "fan-dashboard").authenticated()
+                        .requestMatchers("/api/user/v1/signup", "/api/user/v1/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/song/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/song/**").authenticated()
                         .requestMatchers("/user/**").authenticated()
+                        .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .successHandler(successHandler) // Cleanly injects the separate handler component
+                        .successHandler(successHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -80,7 +58,8 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()
-                );
+                )
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

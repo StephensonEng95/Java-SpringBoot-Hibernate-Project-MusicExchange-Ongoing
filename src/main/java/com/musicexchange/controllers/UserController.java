@@ -1,9 +1,6 @@
 package com.musicexchange.controllers;
 
-import com.musicexchange.dto.ArtistRequestDto;
-import com.musicexchange.dto.ArtistResponseDto;
-import com.musicexchange.dto.FanResponseDto;
-import com.musicexchange.dto.SuggestedArtistsResponseDto;
+import com.musicexchange.dto.*;
 import com.musicexchange.models.UserRole;
 import com.musicexchange.service.ArtistService;
 import com.musicexchange.service.FanService;
@@ -41,6 +38,7 @@ public class UserController {
         return "signup";
     }
 
+    // to finish up
     @PostMapping("/signup")
     public String processSignup(@Valid @ModelAttribute("requestDto") ArtistRequestDto requestDto,
                                 BindingResult bindingResult,
@@ -56,7 +54,7 @@ public class UserController {
         if (isArtist) {
             artistService.createArtist(requestDto);
         } else {
-            fanService.createFan(requestDto);
+            fanService.createFan(new FanRequestDto());
         }
 
         redirectAttributes.addFlashAttribute("message", "Account created successfully! Please log in.");
@@ -86,15 +84,15 @@ public class UserController {
             FanResponseDto currentFan = fanService.getFanById(fan.id());
             model.addAttribute("fan", currentFan);
 
-            List<SuggestedArtistsResponseDto> suggestedArtists = suggestedArtistsService.getAllSuggestedArtists()
-                    .stream()
+            List<SuggestedArtistsResponseDto> suggestedArtists = suggestedArtistsService.getAllSuggestedArtists();
+                  /*  .stream()
                     .map(artist -> new SuggestedArtistsResponseDto(
                             artist.id(),
                             artist.username(),
                             artist.profilePic(),
                             artist.genre()
                     ))
-                    .toList();
+                    .toList();*/
             model.addAttribute("artists", suggestedArtists);
 
             return "fan-dashboard";

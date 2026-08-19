@@ -1,9 +1,6 @@
 package com.musicexchange.controllers;
 
-import com.musicexchange.dto.ArtistRequestDto;
-import com.musicexchange.dto.ArtistResponseDto;
-import com.musicexchange.dto.FanResponseDto;
-import com.musicexchange.dto.SuggestedArtistsResponseDto;
+import com.musicexchange.dto.*;
 import com.musicexchange.models.UserRole;
 import com.musicexchange.service.ArtistService;
 import com.musicexchange.service.FanService;
@@ -25,6 +22,7 @@ public class UserRestApi {
     private final ArtistService artistService;
     private final FanService fanService;
     private final SuggestedArtistsService suggestedArtistsService;
+
     @GetMapping("/artist/{artistId}")
     public ResponseEntity<ArtistResponseDto> getArtist(@PathVariable("artistId") Long id) {
         ArtistResponseDto artist = artistService.getArtistById(id);
@@ -39,29 +37,46 @@ public class UserRestApi {
     }
 
     @GetMapping("fan/current-artists")
-    public ResponseEntity<List<ArtistResponseDto>> getAllArtists(){
+    public ResponseEntity<List<ArtistResponseDto>> getAllArtists() {
         List<ArtistResponseDto> artists = artistService.getAllArtists();
         return ResponseEntity.ok(artists);
     }
 
     //this class is mainly for testing artists populated on fan dashboard
     @GetMapping("fan/suggested-artists")
-    public ResponseEntity<List<SuggestedArtistsResponseDto>> getAllSuggestedArtists(){
+    public ResponseEntity<List<SuggestedArtistsResponseDto>> getAllSuggestedArtists() {
         List<SuggestedArtistsResponseDto> artists = suggestedArtistsService.getAllSuggestedArtists();
         return ResponseEntity.ok(artists);
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<String> signup(@Valid @RequestBody ArtistRequestDto requestDto,
-                                         @RequestParam UserRole role) {
-        if (role == UserRole.ARTIST) {
-            artistService.createArtist(requestDto);
-            return ResponseEntity.ok("Artist registered successfully.");
-        } else if (role == UserRole.FAN) {
-            fanService.createFan(requestDto);
-            return ResponseEntity.ok("Fan registered successfully.");
-        }
+    @PostMapping("/artist-signup")
+    public ResponseEntity<ArtistResponseDto> artistSignup(@Valid @RequestBody ArtistRequestDto requestDto) {
+        ArtistResponseDto artistResponseDto;
+        if(requestDto.getRole() == UserRole.ARTIST) {
+            artistResponseDto = artistService.createArtist(requestDto);
+            return ResponseEntity.ok(artistResponseDto);
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user role specified.");
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+
+    @PostMapping("/fan-signup")
+    public ResponseEntity<FanResponseDto> fanSignup(@Valid @RequestBody FanRequestDto fanRequestDto){
+        if (fanRequestDto.getRole() == UserRole.FAN) {
+            FanResponseDto fanResponseDto = fanService.createFan(fanRequestDto);
+            //if (object2 instanceof FanResponseDto fan) {
+            return ResponseEntity.ok(fanResponseDto);
+            //}
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
     }
 }
+
+    /*@PostMapping("/login")
+    public ResponseEntity<ArtistResponseDto> userLogin(@Valid @RequestBody ArtistRequestDto requestDto){
+            ArtistResponseDto artistResponseDto;
+
+
+            }*/
