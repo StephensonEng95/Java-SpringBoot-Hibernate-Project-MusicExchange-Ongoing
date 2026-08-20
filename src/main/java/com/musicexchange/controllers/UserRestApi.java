@@ -4,11 +4,14 @@ import com.musicexchange.dto.*;
 import com.musicexchange.models.UserRole;
 import com.musicexchange.service.ArtistService;
 import com.musicexchange.service.FanService;
+import com.musicexchange.service.JwtService;
 import com.musicexchange.service.SuggestedArtistsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +25,8 @@ public class UserRestApi {
     private final ArtistService artistService;
     private final FanService fanService;
     private final SuggestedArtistsService suggestedArtistsService;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
     @GetMapping("/artist/{artistId}")
     public ResponseEntity<ArtistResponseDto> getArtist(@PathVariable("artistId") Long id) {
@@ -72,11 +77,21 @@ public class UserRestApi {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequestDto.getUsername(),
+                        loginRequestDto.getPassword()
+                )
+        );
+
+        String accessToken = jwtService.generateToken(loginRequestDto.getUsername());
+        String refreshToken = jwtService.generateRefreshToken(loginRequestDto.getUsername());
+
+        return ResponseEntity.ok(new TokenResponseDto(accessToken, refreshToken));
+    }
 }
 
-    /*@PostMapping("/login")
-    public ResponseEntity<ArtistResponseDto> userLogin(@Valid @RequestBody ArtistRequestDto requestDto){
-            ArtistResponseDto artistResponseDto;
 
-
-            }*/
