@@ -36,18 +36,18 @@ public class ArtistService {
         return mapToResponseDto(artist);
     }
 
-    public ArtistResponseDto createArtist(ArtistRequestDto request) {
-        if (artistRepo.existsByUsername(request.getUsername())) {
-            throw new DuplicateResourceException("Artist username already exists: " + request.getUsername());
+    public ArtistResponseDto createArtist(ArtistRequestDto requestDto) {
+        if (artistRepo.existsByUsername(requestDto.getUsername())) {
+            throw new DuplicateResourceException("Artist username already exists: " + requestDto.getUsername());
         }
-        if (artistRepo.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException("Artist email already exists: " + request.getEmail());
+        if (artistRepo.existsByEmail(requestDto.getEmail())) {
+            throw new DuplicateResourceException("Artist email already exists: " + requestDto   .getEmail());
         }
 
         Artist artist = new Artist();
-        artist.setUsername(request.getUsername());
-        artist.setEmail(request.getEmail());
-        artist.setPassword(passwordEncoder.encode(request.getPassword()));
+        artist.setUsername(requestDto.getUsername());
+        artist.setEmail(requestDto.getEmail());
+        artist.setPassword(passwordEncoder.encode(requestDto.getPassword()));
 
         Artist savedArtist = artistRepo.save(artist);
         return mapToResponseDto(savedArtist);
